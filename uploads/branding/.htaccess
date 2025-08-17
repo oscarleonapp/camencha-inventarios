@@ -1,0 +1,22 @@
+# Protección para directorio de branding
+# Solo archivos de imagen permitidos
+
+<Files "*">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+<FilesMatch "\.(jpg|jpeg|png|gif|svg|ico)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Prevenir ejecución de scripts
+AddHandler cgi-script .php .pl .py .jsp .asp .sh .cgi
+Options -ExecCGI
+
+# Configuración de headers para imágenes
+<FilesMatch "\.(jpg|jpeg|png|gif|svg|ico)$">
+    Header set Cache-Control "max-age=2592000, public"
+    Header set Expires "Thu, 31 Dec 2037 23:55:55 GMT"
+</FilesMatch>

@@ -1,0 +1,16 @@
+# Protección para directorio de archivos temporales
+# Solo archivos CSV y Excel permitidos
+
+<Files "*">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+<FilesMatch "\.(csv|xlsx|xls)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Prevenir ejecución de scripts
+AddHandler cgi-script .php .pl .py .jsp .asp .sh .cgi
+Options -ExecCGI
