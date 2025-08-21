@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/utf8_config.php'; // Configurar UTF-8
 require_once __DIR__ . '/security_headers.php'; // Configurar cabeceras de seguridad
 
 // Verificar logout ANTES de cualquier output

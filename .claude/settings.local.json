@@ -41,7 +41,8 @@
       "Bash(\"/mnt/c/xampp/mysql/bin/mysql.exe\":*)",
       "Bash(sed:*)",
       "Bash(mkdir:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(/mnt/c/xampp/mysql/bin/mysql.exe:*)"
     ],
     "deny": []
   }

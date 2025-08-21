@@ -21,7 +21,9 @@ Sistema de inventario completo desarrollado en PHP/MySQL para gestión de produc
 - **Host**: `localhost`
 - **Puerto**: 3306 (default)
 - **Charset**: utf8mb4 (charset completo)
-- **Archivo SQL**: `inventario_sistema.sql` (estructura completa disponible)
+- **Archivos SQL disponibles**: 
+  - `inventario_sistema-new.sql` - Estructura más reciente y completa
+  - Archivos adicionales para características específicas en subdirectorios
 
 ## Estructura de Archivos Principales
 
@@ -217,8 +219,16 @@ Sistema de inventario completo desarrollado en PHP/MySQL para gestión de produc
 
 ### Configuración del Entorno
 ```bash
-# Servidor de desarrollo local (XAMPP/WAMP recomendado)
+# Servidor de desarrollo local - XAMPP en Windows/WSL
 # URL: http://localhost/inventario-claude/
+
+# XAMPP en WSL - Comandos específicos para MySQL
+/mnt/c/xampp/mysql/bin/mysql.exe -u root -p
+/mnt/c/xampp/mysql/bin/mysql.exe -u root inventario_sistema -e "SHOW TABLES;"
+
+# Verificar servicios XAMPP
+curl http://localhost/dashboard/  # Verificar Apache
+curl http://localhost/phpmyadmin/ # Verificar phpMyAdmin
 
 # Configuración PHP recomendada (desarrollo)
 error_reporting=E_ALL
@@ -238,10 +248,10 @@ extension=zip
 mysql -u root -p -e "CREATE DATABASE inventario_sistema CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # Importar estructura completa (recomendado)
-mysql -u root -p inventario_sistema < inventario_sistema.sql
+mysql -u root -p inventario_sistema < inventario_sistema-new.sql
 
-# Aplicar schema adicional (si es necesario)
-mysql -u root -p inventario_sistema < schema_minimo_dashboard.sql
+# IMPORTANTE: Usar el archivo -new.sql que contiene la estructura más actualizada
+# Los archivos SQL adicionales están disponibles para características específicas
 
 # Verificar conexión y estructura
 mysql -u root -p inventario_sistema -e "SHOW TABLES;"
@@ -370,7 +380,21 @@ php debug_qr_schema.php        # Debug schema QR
 # Error de conexión BD
 # Verificar config/database.php línea 4: db_name = 'inventario_sistema'
 
-# Errores de permisos
+# Problemas específicos XAMPP/WSL
+# Verificar MySQL corriendo:
+/mnt/c/xampp/mysql/bin/mysql.exe -u root -e "SELECT 1;"
+
+# Verificar Apache corriendo:
+curl -I http://localhost/
+
+# Reiniciar servicios XAMPP (desde Windows):
+# C:\xampp\xampp-control.exe
+
+# Error de permisos WSL
+# Verificar montaje correcto:
+ls -la /mnt/c/Users/oscar/Documents/xamp/htdocs/inventario-claude/
+
+# Errores de permisos de usuario
 # Verificar usuario tiene rol asignado en tabla usuarios.rol_id
 
 # Problemas de sesión
@@ -381,17 +405,18 @@ php debug_qr_schema.php        # Debug schema QR
 
 # Error "Column not found" - MUY COMÚN
 # Verificar estructura real de BD antes de asumir nombres de columnas:
-mysql -u root -p inventario_sistema -e "DESCRIBE ventas;"
-mysql -u root -p inventario_sistema -e "DESCRIBE vendedores;"
-mysql -u root -p inventario_sistema -e "DESCRIBE inventarios;"
+/mnt/c/xampp/mysql/bin/mysql.exe -u root inventario_sistema -e "DESCRIBE ventas;"
+/mnt/c/xampp/mysql/bin/mysql.exe -u root inventario_sistema -e "DESCRIBE vendedores;"
+/mnt/c/xampp/mysql/bin/mysql.exe -u root inventario_sistema -e "DESCRIBE inventarios;"
 
 # Errores de subida de archivos
 chmod 755 uploads/boletas/
 # Verificar upload_max_filesize en php.ini
 
-# Logs de errores PHP
+# Logs de errores PHP (WSL)
 tail -f /var/log/apache2/error.log
-tail -f /opt/lampp/logs/error_log
+# O en XAMPP Windows:
+# C:\xampp\apache\logs\error.log
 ```
 
 ### Estructura BD Confirmada (Importante):
@@ -435,26 +460,34 @@ tail -f /opt/lampp/logs/error_log
 
 ### Configuración Requerida
 ```bash
-# Permisos de archivos
+# Permisos de archivos (Linux/WSL)
 chmod 755 uploads/boletas/
+chmod 755 uploads/branding/
+chmod 755 uploads/temp/
+
+# Verificar que MySQL está ejecutándose en XAMPP
+/mnt/c/xampp/mysql/bin/mysql.exe -u root -e "SELECT 1;"
 
 # Configuración PHP para uploads
 upload_max_filesize = 10M
 post_max_size = 12M
 
-# Instalar tabla de boletas
-mysql -u root -p inventario_sistema < crear_tabla_boletas.sql
-mysql -u root -p inventario_sistema < agregar_permisos_boletas.sql
+# Base de datos completa (ya incluye tablas de boletas y nuevas características)
+mysql -u root -p inventario_sistema < inventario_sistema-new.sql
 ```
 
-**Último análisis**: Agosto 2025 - Sistema listo para producción con:
-- Sistema de boletas completamente funcional
-- Mejoras UI/UX implementadas 
-- Errores de esquema BD corregidos
-- Documentación actualizada y completa
-- **NUEVAS CARACTERÍSTICAS AGREGADAS**:
+**Último análisis**: Agosto 2025 - Sistema completamente funcional en entorno XAMPP/WSL:
+- ✅ Base de datos `inventario_sistema` con estructura completa
+- ✅ Configuración MySQL para XAMPP Windows verificada
+- ✅ Sistema de boletas completamente funcional
+- ✅ Mejoras UI/UX implementadas 
+- ✅ Errores de esquema BD corregidos
+- ✅ Documentación actualizada y completa
+- ✅ Comandos WSL/XAMPP documentados
+
+### **CARACTERÍSTICAS AVANZADAS IMPLEMENTADAS**:
   - ✅ Sistema de generación automática de códigos
-  - ✅ Importación masiva desde Excel/CSV
+  - ✅ Importación masiva desde Excel/CSV  
   - ✅ Códigos QR con escáner móvil
   - ✅ Sistema de cotizaciones completo
   - ✅ Personalización visual y branding
@@ -464,3 +497,10 @@ mysql -u root -p inventario_sistema < agregar_permisos_boletas.sql
   - ✅ Vista móvil optimizada (productos_simple.php)
   - ✅ Notificaciones toast no intrusivas
   - ✅ Sistema de reset completo del sistema
+
+### **ENTORNO DE DESARROLLO**:
+- **OS**: Windows con WSL2
+- **Servidor**: XAMPP (Apache + MySQL)
+- **Base de datos activa**: `inventario_sistema` 
+- **URL local**: `http://localhost/inventario-claude/`
+- **MySQL path**: `/mnt/c/xampp/mysql/bin/mysql.exe`

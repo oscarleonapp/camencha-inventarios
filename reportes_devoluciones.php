@@ -18,7 +18,7 @@ $tienda_filtro = $_GET['tienda_id'] ?? '';
 $producto_filtro = $_GET['producto_id'] ?? '';
 
 // Construir consulta con filtros
-$where_conditions = ["m.tipo = 'devolucion'"];
+$where_conditions = ["m.tipo_movimiento = 'devolucion'"];
 $params = [];
 
 if ($fecha_inicio) {
@@ -46,7 +46,7 @@ $where_clause = implode(' AND ', $where_conditions);
 // Consulta principal de devoluciones
 $query_devoluciones = "SELECT 
                         m.id,
-                        m.tipo,
+                        m.tipo_movimiento,
                         m.producto_id,
                         m.tienda_destino_id,
                         m.cantidad,
@@ -54,7 +54,7 @@ $query_devoluciones = "SELECT
                         m.referencia_id,
                         m.referencia_tipo,
                         m.usuario_id,
-                        m.notas,
+                        m.motivo as notas,
                         m.fecha,
                         t.nombre as tienda_nombre,
                         p.codigo as producto_codigo,
@@ -108,12 +108,12 @@ $top_productos = $stmt_top_productos->fetchAll(PDO::FETCH_ASSOC);
 
 // Devoluciones por motivo
 $query_motivos = "SELECT 
-                   SUBSTRING_INDEX(SUBSTRING_INDEX(m.notas, ' - ', -1), '.', 1) as motivo,
+                   SUBSTRING_INDEX(SUBSTRING_INDEX(m.motivo, ' - ', -1), '.', 1) as motivo_detallado,
                    COUNT(*) as cantidad,
                    SUM(m.cantidad) as total_unidades
                  FROM movimientos_inventario m
-                 WHERE $where_clause AND m.notas LIKE 'Ingreso por devolución - %'
-                 GROUP BY motivo
+                 WHERE $where_clause AND m.motivo LIKE 'Ingreso por devolución - %'
+                 GROUP BY motivo_detallado
                  ORDER BY cantidad DESC";
 
 $stmt_motivos = $db->prepare($query_motivos);

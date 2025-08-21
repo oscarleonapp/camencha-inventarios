@@ -28,13 +28,14 @@ $offset = ($pagina - 1) * $por_pagina;
 $where_conditions = [];
 $params = [];
 
-if (!empty($filtro_modulo)) {
-    $where_conditions[] = "l.modulo = ?";
-    $params[] = $filtro_modulo;
-}
+// Modulo functionality removed - column doesn't exist in current schema
+// if (!empty($filtro_modulo)) {
+//     $where_conditions[] = "l.modulo = ?";
+//     $params[] = $filtro_modulo;
+// }
 
 if (!empty($filtro_nivel)) {
-    $where_conditions[] = "l.tipo = ?";
+    $where_conditions[] = "l.nivel = ?";
     $params[] = $filtro_nivel;
 }
 
@@ -44,12 +45,12 @@ if (!empty($filtro_usuario)) {
 }
 
 if (!empty($filtro_fecha_inicio)) {
-    $where_conditions[] = "DATE(l.fecha) >= ?";
+    $where_conditions[] = "DATE(l.created_at) >= ?";
     $params[] = $filtro_fecha_inicio;
 }
 
 if (!empty($filtro_fecha_fin)) {
-    $where_conditions[] = "DATE(l.fecha) <= ?";
+    $where_conditions[] = "DATE(l.created_at) <= ?";
     $params[] = $filtro_fecha_fin;
 }
 
@@ -59,7 +60,7 @@ if (!empty($filtro_accion)) {
 }
 
 if (!empty($busqueda)) {
-    $where_conditions[] = "(l.mensaje LIKE ? OR u.nombre LIKE ? OR l.ip LIKE ?)";
+    $where_conditions[] = "(l.mensaje LIKE ? OR u.nombre LIKE ? OR l.ip_address LIKE ?)";
     $params[] = "%$busqueda%";
     $params[] = "%$busqueda%";
     $params[] = "%$busqueda%";
@@ -71,7 +72,7 @@ $where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_c
 $query = "SELECT l.*, u.nombre as usuario_nombre, u.email as usuario_email 
           FROM logs_sistema l 
           LEFT JOIN usuarios u ON l.usuario_id = u.id 
-          $where_clause ORDER BY l.fecha DESC LIMIT $por_pagina OFFSET $offset";
+          $where_clause ORDER BY l.created_at DESC LIMIT $por_pagina OFFSET $offset";
 $stmt = $db->prepare($query);
 $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -84,7 +85,8 @@ $total_logs = $count_stmt->fetch(PDO::FETCH_ASSOC)['total'];
 $total_paginas = ceil($total_logs / $por_pagina);
 
 // Obtener datos para filtros
-$modulos = $db->query("SELECT DISTINCT modulo FROM logs_sistema WHERE modulo IS NOT NULL ORDER BY modulo")->fetchAll(PDO::FETCH_COLUMN);
+// $modulos = $db->query("SELECT DISTINCT modulo FROM logs_sistema WHERE modulo IS NOT NULL ORDER BY modulo")->fetchAll(PDO::FETCH_COLUMN);
+$modulos = []; // Empty array since modulo column doesn't exist
 $usuarios = $db->query("SELECT DISTINCT l.usuario_id, u.nombre as usuario_nombre FROM logs_sistema l LEFT JOIN usuarios u ON l.usuario_id = u.id WHERE l.usuario_id IS NOT NULL ORDER BY u.nombre")->fetchAll(PDO::FETCH_ASSOC);
 
 // Estadísticas
@@ -257,7 +259,7 @@ require_once 'includes/layout_header.php';
                             <?php foreach ($logs as $log): ?>
                                 <tr>
                                     <td>
-                                        <small><?php echo date('d/m/Y H:i:s', strtotime($log['fecha'])); ?></small>
+                                        <small><?php echo date('d/m/Y H:i:s', strtotime($log['created_at'])); ?></small>
                                     </td>
                                     <td>
                                         <?php if ($log['usuario_nombre']): ?>
@@ -268,7 +270,7 @@ require_once 'includes/layout_header.php';
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary"><?php echo htmlspecialchars($log['modulo'] ?? 'Sin módulo'); ?></span>
+                                        <span class="badge bg-secondary">Sistema</span>
                                     </td>
                                     <td>
                                         <?php
@@ -279,15 +281,15 @@ require_once 'includes/layout_header.php';
                                             'error' => 'bg-danger'
                                         ];
                                         ?>
-                                        <span class="badge <?php echo $tipo_class[$log['tipo']] ?? 'bg-secondary'; ?>">
-                                            <?php echo strtoupper($log['tipo']); ?>
+                                        <span class="badge <?php echo $tipo_class[$log['nivel']] ?? 'bg-secondary'; ?>">
+                                            <?php echo strtoupper($log['nivel']); ?>
                                         </span>
                                     </td>
                                     <td>
                                         <div class="descripcion-log"><?php echo htmlspecialchars($log['mensaje']); ?></div>
                                     </td>
                                     <td>
-                                        <code class="small"><?php echo htmlspecialchars($log['ip'] ?? 'N/A'); ?></code>
+                                        <code class="small"><?php echo htmlspecialchars($log['ip_address'] ?? 'N/A'); ?></code>
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary" onclick="verDetalleLog(<?php echo $log['id']; ?>)">

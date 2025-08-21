@@ -55,7 +55,7 @@ if ($_POST && isset($_POST['tipo_exportacion'])) {
 // Obtener datos para los filtros
 $roles = $db->query("SELECT * FROM roles WHERE activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 $tiendas = $db->query("SELECT * FROM tiendas WHERE activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
-$categorias = $db->query("SELECT DISTINCT c.nombre FROM productos p LEFT JOIN categorias c ON p.categoria_id = c.id WHERE c.nombre IS NOT NULL ORDER BY c.nombre")->fetchAll(PDO::FETCH_COLUMN);
+$categorias = $db->query("SELECT DISTINCT categoria FROM productos WHERE categoria IS NOT NULL AND categoria != '' ORDER BY categoria")->fetchAll(PDO::FETCH_COLUMN);
 
 require_once 'includes/layout_header.php';
 ?>

@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $db->beginTransaction();
             
             // Verificar que el número de boleta no exista
-            $stmt_check = $db->prepare("SELECT id FROM boletas WHERE numero = ?");
+            $stmt_check = $db->prepare("SELECT id FROM boletas WHERE numero_boleta = ?");
             $stmt_check->execute([$numero_boleta]);
             if ($stmt_check->fetch()) {
                 throw new Exception("El número de boleta ya existe en el sistema");
@@ -71,8 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
             
             // Insertar en la base de datos
-            $stmt_insert = $db->prepare("INSERT INTO boletas (numero, fecha, proveedor, descripcion, imagen, usuario_id) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt_insert->execute([$numero_boleta, $fecha, $proveedor, $descripcion, $nombre_nuevo, $usuario_id]);
+            $stmt_insert = $db->prepare("INSERT INTO boletas (numero_boleta, fecha_boleta, proveedor, descripcion, imagen_path, usuario_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt_insert->execute([$numero_boleta, $fecha, $proveedor, $descripcion, $ruta_destino, $usuario_id]);
             
             $db->commit();
             $success = "Boleta subida correctamente";
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $db->beginTransaction();
         
         // Obtener datos de la boleta para eliminar archivo
-        $stmt_get = $db->prepare("SELECT imagen FROM boletas WHERE id = ?");
+        $stmt_get = $db->prepare("SELECT imagen_path FROM boletas WHERE id = ?");
         $stmt_get->execute([$boleta_id]);
         $boleta = $stmt_get->fetch(PDO::FETCH_ASSOC);
         
@@ -117,8 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt_delete->execute([$boleta_id]);
         
         // Eliminar archivo físico
-        if (file_exists('uploads/boletas/' . $boleta['imagen'])) {
-            unlink('uploads/boletas/' . $boleta['imagen']);
+        if (file_exists($boleta['imagen_path'])) {
+            unlink($boleta['imagen_path']);
         }
         
         $db->commit();
@@ -141,7 +141,7 @@ $where_conditions = [];
 $params = [];
 
 if (!empty($filtro_numero)) {
-    $where_conditions[] = "b.numero LIKE ?";
+    $where_conditions[] = "b.numero_boleta LIKE ?";
     $params[] = "%$filtro_numero%";
 }
 
@@ -151,23 +151,23 @@ if (!empty($filtro_proveedor)) {
 }
 
 if (!empty($filtro_fecha_desde)) {
-    $where_conditions[] = "b.fecha >= ?";
+    $where_conditions[] = "b.fecha_boleta >= ?";
     $params[] = $filtro_fecha_desde;
 }
 
 if (!empty($filtro_fecha_hasta)) {
-    $where_conditions[] = "b.fecha <= ?";
+    $where_conditions[] = "b.fecha_boleta <= ?";
     $params[] = $filtro_fecha_hasta;
 }
 
 $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
 
 // Obtener boletas
-$query_boletas = "SELECT b.*, u.nombre as usuario_nombre 
+$query_boletas = "SELECT b.*, b.created_at as fecha_creacion, u.nombre as usuario_nombre 
                   FROM boletas b 
                   JOIN usuarios u ON b.usuario_id = u.id 
                   $where_clause 
-                  ORDER BY b.fecha_creacion DESC";
+                  ORDER BY b.created_at DESC";
 
 $stmt_boletas = $db->prepare($query_boletas);
 $stmt_boletas->execute($params);
@@ -275,9 +275,9 @@ include 'includes/layout_header.php';
                         <?php foreach ($boletas as $boleta): ?>
                             <tr>
                                 <td>
-                                    <strong><?php echo htmlspecialchars($boleta['numero']); ?></strong>
+                                    <strong><?php echo htmlspecialchars($boleta['numero_boleta']); ?></strong>
                                 </td>
-                                <td><?php echo date('d/m/Y', strtotime($boleta['fecha'])); ?></td>
+                                <td><?php echo date('d/m/Y', strtotime($boleta['fecha_boleta'])); ?></td>
                                 <td><?php echo htmlspecialchars($boleta['proveedor']); ?></td>
                                 <td>
                                     <span title="<?php echo htmlspecialchars($boleta['descripcion']); ?>">
@@ -286,7 +286,7 @@ include 'includes/layout_header.php';
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-info" 
-                                            onclick="verImagen('uploads/boletas/<?php echo htmlspecialchars($boleta['imagen']); ?>', '<?php echo htmlspecialchars($boleta['numero']); ?>')">
+                                            onclick="verImagen('<?php echo htmlspecialchars($boleta['imagen_path']); ?>', '<?php echo htmlspecialchars($boleta['numero_boleta']); ?>')">
                                         <i class="fas fa-image"></i> Ver
                                     </button>
                                 </td>
@@ -299,7 +299,7 @@ include 'includes/layout_header.php';
                                 <td>
                                     <?php if (tienePermiso('boletas_eliminar')): ?>
                                         <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                onclick="confirmarEliminar(<?php echo $boleta['id']; ?>, '<?php echo addslashes($boleta['numero']); ?>')">
+                                                onclick="confirmarEliminar(<?php echo $boleta['id']; ?>, '<?php echo addslashes($boleta['numero_boleta']); ?>')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     <?php endif; ?>

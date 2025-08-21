@@ -136,7 +136,7 @@ function obtenerTemas() {
     $database = new Database();
     $db = $database->getConnection();
     
-    $query = "SELECT * FROM temas_sistema WHERE activo = 1 ORDER BY nombre";
+    $query = "SELECT * FROM temas_sistema WHERE es_activo = 1 ORDER BY nombre";
     $stmt = $db->prepare($query);
     $stmt->execute();
     
@@ -149,7 +149,7 @@ function obtenerTemaActual() {
     $database = new Database();
     $db = $database->getConnection();
     
-    $query = "SELECT * FROM temas_sistema WHERE nombre = ? AND activo = 1";
+    $query = "SELECT * FROM temas_sistema WHERE nombre = ? AND es_activo = 1";
     $stmt = $db->prepare($query);
     $stmt->execute([$tema_nombre]);
     
@@ -157,7 +157,7 @@ function obtenerTemaActual() {
     
     if (!$tema) {
         // Si no se encuentra el tema, usar el primero disponible
-        $query = "SELECT * FROM temas_sistema WHERE activo = 1 ORDER BY nombre LIMIT 1";
+        $query = "SELECT * FROM temas_sistema WHERE es_activo = 1 ORDER BY nombre LIMIT 1";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $tema = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -170,7 +170,7 @@ function aplicarTema($tema_id) {
     $database = new Database();
     $db = $database->getConnection();
     
-    $query = "SELECT nombre FROM temas_sistema WHERE id = ? AND activo = 1";
+    $query = "SELECT nombre FROM temas_sistema WHERE id = ? AND es_activo = 1";
     $stmt = $db->prepare($query);
     $stmt->execute([$tema_id]);
     

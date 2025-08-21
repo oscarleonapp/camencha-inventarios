@@ -124,18 +124,17 @@ $where = [];
 $params = [];
 if ($prov_f !== '') { $where[] = "pr.nombre LIKE ?"; $params[] = "%$prov_f%"; }
 if ($estado_f !== '') { $where[] = "c.estado = ?"; $params[] = $estado_f; }
-if ($fecha_i !== '') { $where[] = "DATE(c.fecha_creacion) >= ?"; $params[] = $fecha_i; }
-if ($fecha_f !== '') { $where[] = "DATE(c.fecha_creacion) <= ?"; $params[] = $fecha_f; }
+if ($fecha_i !== '') { $where[] = "DATE(c.created_at) >= ?"; $params[] = $fecha_i; }
+if ($fecha_f !== '') { $where[] = "DATE(c.created_at) <= ?"; $params[] = $fecha_f; }
 $wc = !empty($where) ? (" WHERE " . implode(" AND ", $where)) : "";
-$sqlOCs = "SELECT c.*, pr.nombre AS proveedor_nombre, t.nombre AS tienda_nombre, u.nombre AS usuario_nombre,"
+$sqlOCs = "SELECT c.*, pr.nombre AS proveedor_nombre, u.nombre AS usuario_nombre,"
         . " (SELECT SUM(dc.cantidad) FROM detalle_compras dc WHERE dc.compra_id=c.id) as total_items,"
         . " 0 as pendientes"
         . " FROM compras c"
         . " LEFT JOIN proveedores pr ON c.proveedor_id = pr.id"
-        . " JOIN tiendas t ON c.tienda_id = t.id"
         . " JOIN usuarios u ON c.usuario_id = u.id"
         . $wc
-        . " ORDER BY c.fecha_creacion DESC LIMIT 200";
+        . " ORDER BY c.created_at DESC LIMIT 200";
 // Export CSV
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
   $sqlCsv = str_replace(' LIMIT 200','', $sqlOCs);
@@ -145,11 +144,11 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
   header('Content-Type: text/csv; charset=utf-8');
   header('Content-Disposition: attachment; filename=ordenes_compra_'.date('Y-m-d_H-i-s').'.csv');
   $out = fopen('php://output','w');
-  fputcsv($out, ['OC','Proveedor','Tienda','Estado','Items','Pendientes','Usuario','Fecha']);
+  fputcsv($out, ['OC','Proveedor','Estado','Items','Pendientes','Usuario','Fecha']);
   foreach ($rows as $r) {
     fputcsv($out, [
-      $r['id'], $r['proveedor_nombre'], $r['tienda_nombre'], $r['estado'],
-      (int)$r['total_items'], max(0,(int)$r['pendientes']), $r['usuario_nombre'], $r['fecha_creacion']
+      $r['id'], $r['proveedor_nombre'], $r['estado'],
+      (int)$r['total_items'], max(0,(int)$r['pendientes']), $r['usuario_nombre'], $r['created_at']
     ]);
   }
   fclose($out);
@@ -229,7 +228,6 @@ include 'includes/layout_header.php';
             <th>Número</th>
             <th>#OC</th>
             <th>Proveedor</th>
-            <th>Tienda</th>
             <th>Estado</th>
             <th>Items</th>
             <th>Pendientes</th>
@@ -241,17 +239,16 @@ include 'includes/layout_header.php';
         <tbody>
           <?php foreach ($ocs as $oc): ?>
           <tr>
-            <td><?php echo htmlspecialchars($oc['numero'] ?: ''); ?></td>
+            <td><?php echo htmlspecialchars($oc['numero_compra'] ?: ''); ?></td>
             <td>#<?php echo $oc['id']; ?></td>
             <td><?php echo htmlspecialchars($oc['proveedor_nombre'] ?: '—'); ?></td>
-            <td><?php echo htmlspecialchars($oc['tienda_nombre']); ?></td>
             <td><span class="badge bg-<?php echo $oc['estado']==='pendiente'?'warning':($oc['estado']==='recibida'?'success':'secondary'); ?>"><?php echo ucfirst($oc['estado']); ?></span></td>
             <td><?php echo (int)$oc['total_items']; ?></td>
             <td><?php echo max(0,(int)$oc['pendientes']); ?></td>
             <td><?php echo htmlspecialchars($oc['usuario_nombre']); ?></td>
-            <td><?php echo date('d/m/Y H:i', strtotime($oc['fecha_creacion'])); ?></td>
+            <td><?php echo date('d/m/Y H:i', strtotime($oc['created_at'])); ?></td>
             <td>
-              <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalRecibirOC" data-oc-id="<?php echo $oc['id']; ?>" data-tienda-id="<?php echo $oc['tienda_id']; ?>">
+              <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalRecibirOC" data-oc-id="<?php echo $oc['id']; ?>">
                 <i class="fas fa-inbox"></i> Recibir
               </button>
               <a class="btn btn-sm btn-outline-primary ms-1" href="oc_print.php?id=<?php echo $oc['id']; ?>" target="_blank"><i class="fas fa-print"></i></a>

@@ -48,7 +48,7 @@ if ($_POST && isset($_POST['action'])) {
 $query_usuarios = "SELECT u.*, r.nombre as rol_nombre 
                    FROM usuarios u 
                    LEFT JOIN roles r ON u.rol_id = r.id 
-                   ORDER BY u.fecha_creacion DESC";
+                   ORDER BY u.created_at DESC";
 $stmt_usuarios = $db->prepare($query_usuarios);
 $stmt_usuarios->execute();
 $usuarios = $stmt_usuarios->fetchAll(PDO::FETCH_ASSOC);
@@ -213,7 +213,7 @@ include 'includes/layout_header.php';
                                 </td>
                                 <td>
                                     <small class="text-muted">
-                                        <?php echo date('d/m/Y', strtotime($usuario['fecha_creacion'])); ?>
+                                        <?php echo date('d/m/Y', strtotime($usuario['created_at'])); ?>
                                     </small>
                                 </td>
                                 <td>

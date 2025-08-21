@@ -19,11 +19,11 @@ $fecha_fin = $_GET['fecha_fin'] ?? '';
 $accion = $_GET['accion'] ?? '';
 $usuario = $_GET['usuario'] ?? '';
 
-$where = ["l.modulo = 'productos'"];
+$where = ["l.mensaje LIKE '%producto%'"];
 $params = [];
-if ($fecha_inicio) { $where[] = "DATE(l.fecha) >= ?"; $params[] = $fecha_inicio; }
-if ($fecha_fin) { $where[] = "DATE(l.fecha) <= ?"; $params[] = $fecha_fin; }
-if ($accion) { $where[] = "l.tipo LIKE ?"; $params[] = "%$accion%"; }
+if ($fecha_inicio) { $where[] = "DATE(l.created_at) >= ?"; $params[] = $fecha_inicio; }
+if ($fecha_fin) { $where[] = "DATE(l.created_at) <= ?"; $params[] = $fecha_fin; }
+if ($accion) { $where[] = "l.nivel LIKE ?"; $params[] = "%$accion%"; }
 if ($usuario) { $where[] = "l.usuario_id = ?"; $params[] = $usuario; }
 $where_clause = 'WHERE ' . implode(' AND ', $where);
 
@@ -31,10 +31,10 @@ $pagina = max(1, intval($_GET['pagina'] ?? 1));
 $por_pagina = 50;
 $offset = ($pagina - 1) * $por_pagina;
 
-$sql = "SELECT l.fecha, u.nombre as usuario_nombre, l.tipo as accion, l.mensaje as descripcion, '' as datos_anteriores, '' as datos_nuevos 
+$sql = "SELECT l.created_at as fecha, u.nombre as usuario_nombre, l.nivel as accion, l.mensaje as descripcion, '' as datos_anteriores, '' as datos_nuevos 
         FROM logs_sistema l 
         LEFT JOIN usuarios u ON l.usuario_id = u.id 
-        $where_clause ORDER BY l.fecha DESC LIMIT $por_pagina OFFSET $offset";
+        $where_clause ORDER BY l.created_at DESC LIMIT $por_pagina OFFSET $offset";
 $stmt = $db->prepare($sql);
 $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -46,11 +46,11 @@ $total = (int)$stmtc->fetchColumn();
 $total_paginas = max(1, (int)ceil($total / $por_pagina));
 
 // Datos para filtros
-$usuarios = $db->query("SELECT DISTINCT l.usuario_id, u.nombre as usuario_nombre FROM logs_sistema l LEFT JOIN usuarios u ON l.usuario_id = u.id WHERE l.modulo = 'productos' AND l.usuario_id IS NOT NULL ORDER BY u.nombre")->fetchAll(PDO::FETCH_ASSOC);
+$usuarios = $db->query("SELECT DISTINCT l.usuario_id, u.nombre as usuario_nombre FROM logs_sistema l LEFT JOIN usuarios u ON l.usuario_id = u.id WHERE l.mensaje LIKE '%producto%' AND l.usuario_id IS NOT NULL ORDER BY u.nombre")->fetchAll(PDO::FETCH_ASSOC);
 
 // Exportar CSV con filtros
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-  $exp_sql = "SELECT l.fecha, u.nombre as usuario_nombre, l.tipo as accion, l.mensaje as descripcion, '' as datos_anteriores, '' as datos_nuevos FROM logs_sistema l LEFT JOIN usuarios u ON l.usuario_id = u.id $where_clause ORDER BY l.fecha DESC";
+  $exp_sql = "SELECT l.created_at as fecha, u.nombre as usuario_nombre, l.nivel as accion, l.mensaje as descripcion, '' as datos_anteriores, '' as datos_nuevos FROM logs_sistema l LEFT JOIN usuarios u ON l.usuario_id = u.id $where_clause ORDER BY l.created_at DESC";
   $stmte = $db->prepare($exp_sql);
   $stmte->execute($params);
   $rows = $stmte->fetchAll(PDO::FETCH_ASSOC);

@@ -2,6 +2,7 @@
 $titulo = "Lista de Encargados - Sistema de Inventarios";
 require_once 'includes/auth.php';
 require_once 'config/database.php';
+require_once 'includes/csrf_protection.php';
 
 verificarLogin();
 verificarPermiso('tiendas_ver');
@@ -14,6 +15,7 @@ $q = isset($_GET['q']) ? trim($_GET['q']) : '';
 $estado = isset($_GET['estado']) ? $_GET['estado'] : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_POST['id'])) {
+    validarCSRF();
     verificarPermiso('tiendas_crear', 'actualizar');
     $id = (int)$_POST['id'];
     if ($_POST['action'] === 'toggle_activo') {
@@ -35,7 +37,7 @@ if ($q !== '') {
 }
 $where_clause = 'WHERE ' . implode(' AND ', $where);
 
-$stmt = $db->prepare("SELECT id, nombre, email, fecha_creacion, activo FROM usuarios $where_clause ORDER BY nombre");
+$stmt = $db->prepare("SELECT id, nombre, email, created_at as fecha_creacion, activo FROM usuarios $where_clause ORDER BY nombre");
 $stmt->execute($params);
 $encargados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

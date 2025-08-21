@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/auth.php';
 require_once 'config/database.php';
+require_once 'includes/utf8_config.php';
 
 verificarLogin();
 verificarPermiso('config_roles');
@@ -64,6 +65,11 @@ $query_permisos = "SELECT * FROM permisos WHERE activo = 1 ORDER BY modulo, orde
 $stmt_permisos = $db->prepare($query_permisos);
 $stmt_permisos->execute();
 $permisos = $stmt_permisos->fetchAll(PDO::FETCH_ASSOC);
+
+// Corregir descripciones de permisos usando la función global
+foreach ($permisos as &$permiso) {
+    $permiso['descripcion'] = corregirTextoSistema($permiso['descripcion']);
+}
 
 $permisos_por_modulo = [];
 foreach ($permisos as $permiso) {

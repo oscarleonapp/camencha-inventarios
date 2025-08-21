@@ -161,7 +161,15 @@ $stmt_tiendas = $db->prepare($query_tiendas);
 $stmt_tiendas->execute();
 $tiendas = $stmt_tiendas->fetchAll(PDO::FETCH_ASSOC);
 
-$query_productos = "SELECT * FROM productos WHERE activo = 1 ORDER BY nombre";
+// Obtener productos con su inventario total por tienda
+$query_productos = "SELECT p.*, 
+    (SELECT GROUP_CONCAT(CONCAT(t.nombre, ':', COALESCE(i.cantidad - COALESCE(i.cantidad_reparacion, 0), 0)) SEPARATOR ' | ') 
+     FROM tiendas t 
+     LEFT JOIN inventarios i ON t.id = i.tienda_id AND i.producto_id = p.id 
+     WHERE t.activo = 1) as stock_por_tienda
+FROM productos p 
+WHERE p.activo = 1 
+ORDER BY p.nombre";
 $stmt_productos = $db->prepare($query_productos);
 $stmt_productos->execute();
 $productos = $stmt_productos->fetchAll(PDO::FETCH_ASSOC);
@@ -259,8 +267,19 @@ include 'includes/layout_header.php';
                                     <select class="form-control" name="productos[]">
                                         <option value="">Seleccionar Producto</option>
                                         <?php foreach ($productos as $producto): ?>
-                                            <option value="<?php echo $producto['id']; ?>" data-precio="<?php echo $producto['precio_venta']; ?>" data-codigo="<?php echo $producto['codigo']; ?>">
-                                                <?php echo $producto['codigo'] . ' - ' . $producto['nombre'] . ' (Q' . number_format($producto['precio_venta'], 2) . ')'; ?>
+                                            <option value="<?php echo $producto['id']; ?>" 
+                                                    data-precio="<?php echo $producto['precio_venta']; ?>" 
+                                                    data-codigo="<?php echo $producto['codigo']; ?>"
+                                                    data-stock="<?php echo htmlspecialchars($producto['stock_por_tienda'] ?? ''); ?>">
+                                                <?php 
+                                                $stock_info = '';
+                                                if ($producto['stock_por_tienda']) {
+                                                    $stock_info = ' [Stock: ' . $producto['stock_por_tienda'] . ']';
+                                                } else {
+                                                    $stock_info = ' [Sin stock]';
+                                                }
+                                                echo $producto['codigo'] . ' - ' . $producto['nombre'] . ' (Q' . number_format($producto['precio_venta'], 2) . ')' . $stock_info; 
+                                                ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -459,6 +478,118 @@ function calcularComisionEstimada(total) {
         porcentajeElement.textContent = '';
     }
 }
+
+// Función para mostrar stock disponible por tienda
+function mostrarStockTienda() {
+    const tiendaSelect = document.querySelector('select[name="tienda_id"]');
+    const tiendaNombre = tiendaSelect.options[tiendaSelect.selectedIndex].text;
+    
+    document.querySelectorAll('#productosContainer .row').forEach(row => {
+        const productoSelect = row.querySelector('select[name="productos[]"]');
+        actualizarStockProducto(productoSelect, tiendaNombre);
+    });
+}
+
+function actualizarStockProducto(productoSelect, tiendaNombre) {
+    if (!productoSelect.value || !tiendaNombre) return;
+    
+    const option = productoSelect.options[productoSelect.selectedIndex];
+    const stockData = option.dataset.stock;
+    
+    // Buscar el stock para la tienda seleccionada
+    let stockDisponible = 0;
+    if (stockData) {
+        const stocks = stockData.split(' | ');
+        const stockTienda = stocks.find(s => s.startsWith(tiendaNombre + ':'));
+        if (stockTienda) {
+            stockDisponible = parseInt(stockTienda.split(':')[1]) || 0;
+        }
+    }
+    
+    // Agregar/actualizar indicador de stock
+    let stockIndicator = productoSelect.parentNode.querySelector('.stock-indicator');
+    if (!stockIndicator) {
+        stockIndicator = document.createElement('small');
+        stockIndicator.className = 'stock-indicator text-muted d-block mt-1';
+        productoSelect.parentNode.appendChild(stockIndicator);
+    }
+    
+    if (stockDisponible > 0) {
+        stockIndicator.innerHTML = `<i class="fas fa-box text-success"></i> Stock disponible: ${stockDisponible}`;
+        stockIndicator.className = 'stock-indicator text-success d-block mt-1';
+    } else {
+        stockIndicator.innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> Sin stock disponible`;
+        stockIndicator.className = 'stock-indicator text-danger d-block mt-1';
+    }
+    
+    // Actualizar límite máximo del input de cantidad
+    const cantidadInput = productoSelect.closest('.row').querySelector('input[name="cantidades[]"]');
+    cantidadInput.max = stockDisponible;
+    cantidadInput.title = `Máximo disponible: ${stockDisponible}`;
+    
+    // Validar cantidad actual
+    if (parseInt(cantidadInput.value) > stockDisponible) {
+        cantidadInput.value = stockDisponible;
+        cantidadInput.style.borderColor = stockDisponible > 0 ? '' : '#dc3545';
+    }
+}
+
+// Validar antes de enviar el formulario
+function validarFormularioVenta() {
+    const tiendaSelect = document.querySelector('select[name="tienda_id"]');
+    if (!tiendaSelect.value) {
+        alert('Por favor selecciona una tienda');
+        return false;
+    }
+    
+    const rows = document.querySelectorAll('#productosContainer .row');
+    let hayProductos = false;
+    
+    for (let row of rows) {
+        const productoSelect = row.querySelector('select[name="productos[]"]');
+        const cantidadInput = row.querySelector('input[name="cantidades[]"]');
+        
+        if (productoSelect.value && cantidadInput.value) {
+            hayProductos = true;
+            const stockMax = parseInt(cantidadInput.max) || 0;
+            const cantidad = parseInt(cantidadInput.value) || 0;
+            
+            if (cantidad > stockMax) {
+                const productoNombre = productoSelect.options[productoSelect.selectedIndex].text;
+                alert(`La cantidad solicitada para "${productoNombre}" excede el stock disponible (${stockMax})`);
+                return false;
+            }
+        }
+    }
+    
+    if (!hayProductos) {
+        alert('Por favor agrega al menos un producto a la venta');
+        return false;
+    }
+    
+    return true;
+}
+
+// Event listeners
+document.querySelector('select[name="tienda_id"]').addEventListener('change', mostrarStockTienda);
+
+// Actualizar stock cuando se selecciona un producto
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'productos[]') {
+        const tiendaSelect = document.querySelector('select[name="tienda_id"]');
+        if (tiendaSelect.value) {
+            const tiendaNombre = tiendaSelect.options[tiendaSelect.selectedIndex].text;
+            actualizarStockProducto(e.target, tiendaNombre);
+        }
+    }
+});
+
+// Validar formulario al enviar
+document.getElementById('ventaForm').addEventListener('submit', function(e) {
+    if (!validarFormularioVenta()) {
+        e.preventDefault();
+    }
+});
 
 // Recalcular comisión cuando cambie el vendedor
 document.querySelector('select[name="vendedor_id"]').addEventListener('change', function() {

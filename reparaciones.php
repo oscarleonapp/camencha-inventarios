@@ -18,7 +18,7 @@ $query_stats = "SELECT
                    SUM(CASE WHEN estado = 'completado' THEN 1 ELSE 0 END) as completadas,
                    SUM(CASE WHEN estado = 'perdido' THEN 1 ELSE 0 END) as perdidas,
                    SUM(CASE WHEN estado IN ('enviado', 'en_reparacion') THEN cantidad ELSE 0 END) as productos_pendientes,
-                   AVG(CASE WHEN estado = 'completado' THEN DATEDIFF(fecha_completado, fecha_envio) ELSE NULL END) as tiempo_promedio
+                   AVG(CASE WHEN estado = 'completado' THEN DATEDIFF(fecha_retorno, fecha_envio) ELSE NULL END) as tiempo_promedio
                 FROM reparaciones";
 $stmt_stats = $db->prepare($query_stats);
 $stmt_stats->execute();
@@ -42,7 +42,7 @@ $reparaciones_recientes = $stmt_recientes->fetchAll(PDO::FETCH_ASSOC);
 // Obtener productos con más reparaciones
 $query_productos_problemas = "SELECT p.codigo, p.nombre, COUNT(*) as total_reparaciones,
                               SUM(CASE WHEN r.estado = 'perdido' THEN 1 ELSE 0 END) as perdidas,
-                              AVG(CASE WHEN r.estado = 'completado' THEN DATEDIFF(r.fecha_completado, r.fecha_envio) END) as tiempo_promedio
+                              AVG(CASE WHEN r.estado = 'completado' THEN DATEDIFF(r.fecha_retorno, r.fecha_envio) END) as tiempo_promedio
                               FROM reparaciones r
                               JOIN productos p ON r.producto_id = p.id
                               WHERE r.fecha_envio >= DATE_SUB(NOW(), INTERVAL 6 MONTH)

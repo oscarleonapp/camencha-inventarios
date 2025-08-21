@@ -65,16 +65,15 @@ class Logger {
             $tiempo_ejecucion = microtime(true) - $this->tiempo_inicio;
             
             $query = "INSERT INTO logs_sistema (
-                usuario_id, tipo, modulo, mensaje, ip, fecha
-            ) VALUES (?, ?, ?, ?, ?, NOW())";
+                usuario_id, nivel, mensaje, ip_address
+            ) VALUES (?, ?, ?, ?)";
             
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $this->usuario_id,
-                $nivel, // Se mapea a 'tipo'
-                $modulo,
+                $nivel, // Se mapea a 'nivel'
                 $descripcion, // Se mapea a 'mensaje'
-                $this->ip_address // Se mapea a 'ip'
+                $this->ip_address // Se mapea a 'ip_address'
             ]);
             
             return true;
@@ -241,11 +240,11 @@ class Logger {
         
         $query = "SELECT 
             COUNT(*) as total,
-            COUNT(CASE WHEN tipo = 'error' THEN 1 END) as errores,
-            COUNT(CASE WHEN tipo = 'warning' THEN 1 END) as advertencias,
-            COUNT(CASE WHEN tipo = 'debug' THEN 1 END) as criticos,
-            COUNT(CASE WHEN DATE(fecha) = CURDATE() THEN 1 END) as hoy,
-            COUNT(CASE WHEN fecha >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as ultima_semana
+            COUNT(CASE WHEN nivel = 'error' THEN 1 END) as errores,
+            COUNT(CASE WHEN nivel = 'warning' THEN 1 END) as advertencias,
+            COUNT(CASE WHEN nivel = 'debug' THEN 1 END) as criticos,
+            COUNT(CASE WHEN DATE(created_at) = CURDATE() THEN 1 END) as hoy,
+            COUNT(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as ultima_semana
         FROM logs_sistema";
         
         $stmt = $db->prepare($query);
@@ -260,7 +259,7 @@ class Logger {
     public static function limpiarLogsAntiguos($database, $dias = 90) {
         $db = $database->getConnection();
         
-        $query = "DELETE FROM logs_sistema WHERE fecha < DATE_SUB(NOW(), INTERVAL ? DAY)";
+        $query = "DELETE FROM logs_sistema WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)";
         $stmt = $db->prepare($query);
         $result = $stmt->execute([$dias]);
         

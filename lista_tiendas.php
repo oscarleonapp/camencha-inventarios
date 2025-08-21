@@ -73,10 +73,10 @@ if ($q !== '') {
 }
 $where_clause = count($where) ? ('WHERE ' . implode(' AND ', $where)) : '';
 
-$query_tiendas = "SELECT t.*
+$query_tiendas = "SELECT t.*, t.created_at as fecha_creacion
                   FROM tiendas t
                   $where_clause
-                  ORDER BY t.fecha_creacion DESC";
+                  ORDER BY t.created_at DESC";
 $stmt_tiendas = $db->prepare($query_tiendas);
 $stmt_tiendas->execute($params);
 $tiendas = $stmt_tiendas->fetchAll(PDO::FETCH_ASSOC);

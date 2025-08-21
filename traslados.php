@@ -81,7 +81,15 @@ $stmt_tiendas = $db->prepare($query_tiendas);
 $stmt_tiendas->execute();
 $tiendas = $stmt_tiendas->fetchAll(PDO::FETCH_ASSOC);
 
-$query_productos = "SELECT * FROM productos WHERE activo = 1 ORDER BY nombre";
+// Obtener productos con su inventario total por tienda
+$query_productos = "SELECT p.*, 
+    (SELECT GROUP_CONCAT(CONCAT(t.nombre, ':', COALESCE(i.cantidad - COALESCE(i.cantidad_reparacion, 0), 0)) SEPARATOR ' | ') 
+     FROM tiendas t 
+     LEFT JOIN inventarios i ON t.id = i.tienda_id AND i.producto_id = p.id 
+     WHERE t.activo = 1) as stock_por_tienda
+FROM productos p 
+WHERE p.activo = 1 
+ORDER BY p.nombre";
 $stmt_productos = $db->prepare($query_productos);
 $stmt_productos->execute();
 $productos = $stmt_productos->fetchAll(PDO::FETCH_ASSOC);
@@ -98,7 +106,7 @@ $query_traslados = "SELECT mi.*,
                     LEFT JOIN tiendas t_destino ON mi.tienda_destino_id = t_destino.id
                     JOIN productos p ON mi.producto_id = p.id
                     JOIN usuarios u ON mi.usuario_id = u.id
-                    WHERE mi.tipo = 'transferencia'
+                    WHERE mi.tipo_movimiento = 'transferencia'
                     ORDER BY mi.fecha DESC
                     LIMIT 50";
 $stmt_traslados = $db->prepare($query_traslados);
@@ -188,9 +196,18 @@ require_once 'includes/layout_header.php';
                             <select class="form-select" name="producto_id" id="productoSelect" required>
                                 <option value="">Seleccionar producto...</option>
                                 <?php foreach ($productos as $producto): ?>
-                                    <option value="<?php echo $producto['id']; ?>" data-tipo="<?php echo $producto['tipo']; ?>">
-                                        [<?php echo $producto['codigo']; ?>] <?php echo $producto['nombre']; ?>
-                                        <span class="text-muted">(<?php echo ucfirst($producto['tipo']); ?>)</span>
+                                    <option value="<?php echo $producto['id']; ?>" 
+                                            data-tipo="<?php echo $producto['tipo']; ?>"
+                                            data-stock="<?php echo htmlspecialchars($producto['stock_por_tienda'] ?? ''); ?>">
+                                        <?php 
+                                        $stock_info = '';
+                                        if ($producto['stock_por_tienda']) {
+                                            $stock_info = ' [Stock: ' . $producto['stock_por_tienda'] . ']';
+                                        } else {
+                                            $stock_info = ' [Sin stock]';
+                                        }
+                                        echo '[' . $producto['codigo'] . '] ' . $producto['nombre'] . ' (' . ucfirst($producto['tipo']) . ')' . $stock_info; 
+                                        ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -347,21 +364,79 @@ document.getElementById('tiendaOrigen').addEventListener('change', function() {
 });
 
 function verificarStock() {
-    const tiendaId = document.getElementById('tiendaOrigen').value;
-    const productoId = document.getElementById('productoSelect').value;
+    const tiendaOrigenSelect = document.getElementById('tiendaOrigen');
+    const productoSelect = document.getElementById('productoSelect');
     const stockInfo = document.getElementById('stockInfo');
+    const cantidadInput = document.querySelector('input[name="cantidad"]');
     
-    if (tiendaId && productoId) {
-        // Aquí puedes hacer una llamada AJAX para obtener el stock actual
-        // Por ahora solo mostramos un mensaje informativo
-        stockInfo.innerHTML = '<div class="alert alert-info small"><i class="fas fa-info-circle"></i> Verificando stock disponible...</div>';
-        
-        // Simular verificación de stock (en producción esto sería una llamada AJAX)
-        setTimeout(() => {
-            stockInfo.innerHTML = '<div class="alert alert-success small"><i class="fas fa-check"></i> Stock disponible para traslado</div>';
-        }, 1000);
-    } else {
+    if (!tiendaOrigenSelect.value || !productoSelect.value) {
         stockInfo.innerHTML = '';
+        if (cantidadInput) {
+            cantidadInput.max = '';
+            cantidadInput.title = '';
+        }
+        return;
+    }
+    
+    const tiendaNombre = tiendaOrigenSelect.options[tiendaOrigenSelect.selectedIndex].text;
+    const option = productoSelect.options[productoSelect.selectedIndex];
+    const stockData = option.dataset.stock;
+    
+    // Buscar el stock para la tienda origen seleccionada
+    let stockDisponible = 0;
+    if (stockData) {
+        const stocks = stockData.split(' | ');
+        const stockTienda = stocks.find(s => s.startsWith(tiendaNombre + ':'));
+        if (stockTienda) {
+            stockDisponible = parseInt(stockTienda.split(':')[1]) || 0;
+        }
+    }
+    
+    // Mostrar información del stock
+    if (stockDisponible > 0) {
+        stockInfo.innerHTML = `
+            <div class="alert alert-success small">
+                <i class="fas fa-box text-success"></i> 
+                Stock disponible en <strong>${tiendaNombre}</strong>: <strong>${stockDisponible}</strong> unidades
+            </div>`;
+        
+        // Actualizar límite máximo del input de cantidad
+        if (cantidadInput) {
+            cantidadInput.max = stockDisponible;
+            cantidadInput.title = `Máximo disponible: ${stockDisponible}`;
+            
+            // Ajustar cantidad si excede el máximo
+            if (parseInt(cantidadInput.value) > stockDisponible) {
+                cantidadInput.value = stockDisponible;
+            }
+        }
+    } else {
+        stockInfo.innerHTML = `
+            <div class="alert alert-danger small">
+                <i class="fas fa-exclamation-triangle text-danger"></i> 
+                Sin stock disponible en <strong>${tiendaNombre}</strong>
+            </div>`;
+        
+        // Limpiar límites
+        if (cantidadInput) {
+            cantidadInput.max = 0;
+            cantidadInput.value = '';
+            cantidadInput.title = 'Sin stock disponible';
+        }
+    }
+    
+    // Mostrar stock de todas las tiendas
+    if (stockData) {
+        const stocks = stockData.split(' | ');
+        let detalleStock = '<div class="mt-2"><small class="text-muted"><strong>Stock por tienda:</strong><br>';
+        stocks.forEach(stock => {
+            const [tienda, cantidad] = stock.split(':');
+            const cantidad_num = parseInt(cantidad) || 0;
+            const color = cantidad_num > 0 ? 'text-success' : 'text-muted';
+            detalleStock += `<span class="${color}">${tienda}: ${cantidad_num}</span><br>`;
+        });
+        detalleStock += '</small></div>';
+        stockInfo.innerHTML += detalleStock;
     }
 }
 
@@ -377,7 +452,9 @@ function verTodosLosTraslados() {
 document.getElementById('formTraslado').addEventListener('submit', function(e) {
     const origen = document.getElementById('tiendaOrigen').value;
     const destino = document.getElementById('tiendaDestino').value;
-    const cantidad = document.getElementById('cantidadInput').value;
+    const cantidadInput = document.querySelector('input[name="cantidad"]');
+    const cantidad = parseInt(cantidadInput.value) || 0;
+    const maxStock = parseInt(cantidadInput.max) || 0;
     
     if (origen === destino) {
         e.preventDefault();
@@ -388,6 +465,18 @@ document.getElementById('formTraslado').addEventListener('submit', function(e) {
     if (cantidad <= 0) {
         e.preventDefault();
         alert('La cantidad debe ser mayor a 0');
+        return false;
+    }
+    
+    if (cantidad > maxStock) {
+        e.preventDefault();
+        alert(`La cantidad solicitada (${cantidad}) excede el stock disponible (${maxStock})`);
+        return false;
+    }
+    
+    if (maxStock === 0) {
+        e.preventDefault();
+        alert('No hay stock disponible en la tienda origen para realizar el traslado');
         return false;
     }
 });

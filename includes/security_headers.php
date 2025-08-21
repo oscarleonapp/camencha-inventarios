@@ -4,6 +4,9 @@
  */
 
 function configurarCabecerasSeguridad() {
+    // Configurar UTF-8 para la respuesta
+    header("Content-Type: text/html; charset=UTF-8");
+    
     // Content Security Policy - Prevenir XSS
     $csp = "default-src 'self'; " .
            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " .
