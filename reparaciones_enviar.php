@@ -25,6 +25,8 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] == 'enviar_reparacion'
         $error = "La cantidad debe ser mayor a 0";
     } elseif (empty($descripcion_problema)) {
         $error = "La descripción del problema es obligatoria";
+    } elseif (!isset($_FILES['fotos']) || empty($_FILES['fotos']['name'][0])) {
+        $error = "Debe subir al menos una foto del producto antes de enviarlo a reparación";
     } else {
         $db->beginTransaction();
         
@@ -45,21 +47,65 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] == 'enviar_reparacion'
                 throw new Exception("No hay suficiente stock disponible. Stock actual: $stock_disponible");
             }
             
+            // Procesar fotos subidas
+            $fotos_rutas = [];
+            $upload_dir = 'uploads/reparaciones/';
+            
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+            
+            for ($i = 0; $i < count($_FILES['fotos']['name']); $i++) {
+                if ($_FILES['fotos']['error'][$i] === UPLOAD_ERR_OK) {
+                    $archivo_tmp = $_FILES['fotos']['tmp_name'][$i];
+                    $archivo_nombre = $_FILES['fotos']['name'][$i];
+                    $archivo_size = $_FILES['fotos']['size'][$i];
+                    $archivo_tipo = $_FILES['fotos']['type'][$i];
+                    
+                    // Validar tipo de archivo
+                    $tipos_permitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!in_array($archivo_tipo, $tipos_permitidos)) {
+                        throw new Exception("Solo se permiten archivos de imagen (JPG, PNG, GIF, WEBP)");
+                    }
+                    
+                    // Validar tamaño (máximo 5MB)
+                    if ($archivo_size > 5 * 1024 * 1024) {
+                        throw new Exception("Las imágenes no pueden ser mayores a 5MB");
+                    }
+                    
+                    // Generar nombre único
+                    $extension = pathinfo($archivo_nombre, PATHINFO_EXTENSION);
+                    $nombre_unico = 'rep_' . $producto_id . '_' . $tienda_id . '_' . time() . '_' . $i . '.' . $extension;
+                    $ruta_destino = $upload_dir . $nombre_unico;
+                    
+                    if (move_uploaded_file($archivo_tmp, $ruta_destino)) {
+                        $fotos_rutas[] = $nombre_unico;
+                    } else {
+                        throw new Exception("Error al subir la imagen: " . $archivo_nombre);
+                    }
+                }
+            }
+            
+            if (empty($fotos_rutas)) {
+                throw new Exception("No se pudo procesar ninguna foto");
+            }
+            
             // Actualizar inventario: sumar a cantidad_reparacion
             $query_update_inventario = "UPDATE inventarios SET cantidad_reparacion = cantidad_reparacion + ? WHERE tienda_id = ? AND producto_id = ?";
             $stmt_update_inventario = $db->prepare($query_update_inventario);
             $stmt_update_inventario->execute([$cantidad, $tienda_id, $producto_id]);
             
             // Crear registro de reparación
-            $query_reparacion = "INSERT INTO reparaciones (producto_id, tienda_id, cantidad, estado, descripcion_problema, tecnico_proveedor, usuario_envio_id, fecha_envio) 
-                                VALUES (?, ?, ?, 'enviado', ?, ?, ?, NOW())";
+            $fotos_json = json_encode($fotos_rutas);
+            $query_reparacion = "INSERT INTO reparaciones (producto_id, tienda_id, cantidad, estado, notas, proveedor_reparacion, usuario_envio_id, fecha_envio, fotos_envio) 
+                                VALUES (?, ?, ?, 'enviado', ?, ?, ?, NOW(), ?)";
             $stmt_reparacion = $db->prepare($query_reparacion);
-            $stmt_reparacion->execute([$producto_id, $tienda_id, $cantidad, $descripcion_problema, $tecnico_proveedor, $usuario_id]);
+            $stmt_reparacion->execute([$producto_id, $tienda_id, $cantidad, $descripcion_problema, $tecnico_proveedor, $usuario_id, $fotos_json]);
             
             $reparacion_id = $db->lastInsertId();
             
             // Registrar movimiento de inventario
-            $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_origen_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id, fecha)
+            $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_origen_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id, fecha)
                                 VALUES ('salida', ?, ?, ?, 'Envío a reparación', ?, 'reparacion', ?, NOW())";
             $stmt_movimiento = $db->prepare($query_movimiento);
             $stmt_movimiento->execute([$producto_id, $tienda_id, $cantidad, $reparacion_id, $usuario_id]);
@@ -103,9 +149,9 @@ $inventarios = $stmt_inventarios->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
     <h2><i class="fas fa-tools"></i> Enviar a Reparación</h2>
-    <div class="btn-group">
+    <div class="btn-group rs-wrap-sm">
         <a href="reparaciones.php" class="btn btn-outline-secondary">
             <i class="fas fa-list"></i> Ver Reparaciones
         </a>
@@ -136,7 +182,7 @@ include 'includes/layout_header.php';
                 <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Nuevo Envío a Reparación</h5>
             </div>
             <div class="card-body">
-                <form method="POST" id="form-enviar-reparacion">
+                <form method="POST" id="form-enviar-reparacion" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="enviar_reparacion">
                     
                     <div class="mb-3">
@@ -188,6 +234,20 @@ include 'includes/layout_header.php';
                                value="<?php echo htmlspecialchars($_POST['tecnico_proveedor'] ?? ''); ?>">
                     </div>
                     
+                    <div class="mb-3">
+                        <label for="fotos" class="form-label">
+                            <i class="fas fa-camera"></i> Fotos del Producto <span class="text-danger">*</span>
+                        </label>
+                        <input type="file" class="form-control" id="fotos" name="fotos[]" 
+                               accept="image/*" multiple required>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Obligatorio:</strong> Sube al menos una foto del producto antes de enviarlo a reparación. 
+                            Se permiten múltiples imágenes (JPG, PNG, GIF, WEBP) hasta 5MB cada una.
+                        </div>
+                        <div id="preview-fotos" class="mt-3"></div>
+                    </div>
+                    
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i> Enviar a Reparación
@@ -204,7 +264,7 @@ include 'includes/layout_header.php';
                 <h5 class="mb-0"><i class="fas fa-warehouse"></i> Stock Disponible por Tienda</h5>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
+                <div class="table-responsive-md">
                     <table class="table table-sm table-hover">
                         <thead>
                             <tr>
@@ -290,12 +350,57 @@ function mostrarStockDisponible() {
     }
 }
 
+// Vista previa de fotos
+document.getElementById('fotos').addEventListener('change', function(e) {
+    const files = e.target.files;
+    const previewContainer = document.getElementById('preview-fotos');
+    previewContainer.innerHTML = '';
+    
+    if (files.length === 0) {
+        return;
+    }
+    
+    previewContainer.innerHTML = '<h6>Vista previa de las fotos:</h6>';
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        if (!file.type.startsWith('image/')) {
+            continue;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'd-inline-block me-3 mb-3';
+            imgContainer.innerHTML = `
+                <div class="border rounded p-2 text-center" style="width: 150px;">
+                    <img src="${e.target.result}" alt="Preview ${i+1}" class="img-thumbnail" style="max-width: 120px; max-height: 120px;">
+                    <small class="d-block text-muted mt-1">${file.name}</small>
+                    <small class="d-block text-info">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                </div>
+            `;
+            previewContainer.appendChild(imgContainer);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
 // Validación del formulario
 document.getElementById('form-enviar-reparacion').addEventListener('submit', function(e) {
     const tiendaId = document.getElementById('tienda_id').value;
     const productoId = document.getElementById('producto_id').value;
     const cantidad = parseInt(document.getElementById('cantidad').value);
+    const fotos = document.getElementById('fotos').files;
     
+    // Validar que se hayan seleccionado fotos
+    if (fotos.length === 0) {
+        e.preventDefault();
+        showToast('Debe seleccionar al menos una foto del producto', 'error');
+        return false;
+    }
+    
+    // Validar stock disponible
     if (tiendaId && productoId) {
         const inventario = inventarios.find(inv => 
             inv.tienda_id == tiendaId && inv.producto_id == productoId

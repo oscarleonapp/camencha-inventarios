@@ -25,11 +25,51 @@ $modo_edicion = isset($_SESSION['modo_edicion']) && $_SESSION['modo_edicion'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $titulo ?? 'Sistema de Inventarios'; ?></title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="<?php echo $config['color_primario'] ?? '#007bff'; ?>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Inventario">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="<?php echo $config['color_primario'] ?? '#007bff'; ?>">
+    <meta name="msapplication-config" content="browserconfig.xml">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="72x72" href="assets/icons/icon-72x72.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="assets/icons/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="assets/icons/icon-128x128.png">
+    <link rel="icon" type="image/png" sizes="144x144" href="assets/icons/icon-144x144.png">
+    <link rel="icon" type="image/png" sizes="152x152" href="assets/icons/icon-152x152.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="384x384" href="assets/icons/icon-384x384.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/icon-512x512.png">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="72x72" href="assets/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="assets/icons/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="assets/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="assets/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-192x192.png">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Base layout styles (structure) -->
+    <?php
+        $css_ver = function($path) { return file_exists($path) ? filemtime($path) : time(); };
+    ?>
+    <link rel="stylesheet" href="assets/css/admin.css?v=<?php echo $css_ver(__DIR__ . '/../assets/css/admin.css'); ?>">
+    <!-- Theme tokens and components (colors/semantics) -->
+    <link rel="stylesheet" href="assets/css/modern-theme.css?v=<?php echo $css_ver(__DIR__ . '/../assets/css/modern-theme.css'); ?>">
     <!-- Estilos Dinámicos Personalizados -->
-    <link rel="stylesheet" href="estilos_dinamicos.css.php?v=<?php echo time(); ?>"><?php
+    <link rel="stylesheet" href="estilos_dinamicos.css.php?v=<?php echo time(); ?>">
+    <!-- Accesibilidad (último para pequeños ajustes, sin sobrescribir el tema) -->
+    <link rel="stylesheet" href="assets/css/accessibility-fixes.css?v=<?php echo $css_ver(__DIR__ . '/../assets/css/accessibility-fixes.css'); ?>">
+    <link rel="stylesheet" href="assets/css/accessibility-subtle.css?v=<?php echo $css_ver(__DIR__ . '/../assets/css/accessibility-subtle.css'); ?>"><?php
     // Cargar configuración visual para favicon y fuentes
     require_once __DIR__ . '/estilos_dinamicos.php';
     $config_visual = obtenerConfiguracionVisual();

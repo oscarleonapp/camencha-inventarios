@@ -283,7 +283,7 @@ obtenerMenuModulos()                               // Obtener menú según permi
 
 #### **Temas y Colores**
 - **4 temas predefinidos**: Default, Dark Mode, Corporate Blue, Green Nature
-- **Editor de colores**: Personalizar colores primarios, sidebar, topbar
+- **Editor de colores**: Personalizar colores primarios, sidebar, topbar. Consulta la [Guía de Paleta de Colores](GUIA_COLORES.md) para usar tokens (`--primary-color`, `--success-color`, etc.) y utilidades de Bootstrap sin `!important`.
 - **Aplicación inmediata**: Sin necesidad de recargar
 
 #### **Configuración de Inventario**

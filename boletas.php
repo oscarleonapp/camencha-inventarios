@@ -257,8 +257,8 @@ include 'includes/layout_header.php';
     </div>
     <div class="card-body">
         <?php if (!empty($boletas)): ?>
-            <div class="table-responsive">
-                <table class="table table-hover">
+            <div class="table-responsive-md">
+                <table class="table table-hover accessibility-fix">
                     <thead>
                         <tr>
                             <th>Número</th>

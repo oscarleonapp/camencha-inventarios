@@ -105,12 +105,12 @@ require_once 'includes/layout_header.php';
 ?>
 
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2>
             <i class="fas fa-chart-line"></i>
             <span class="editable" data-label="reportes_vendedores_titulo">Reportes de Vendedores</span>
         </h2>
-        <div class="btn-group">
+        <div class="btn-group rs-wrap-sm">
             <button class="btn btn-outline-primary" onclick="exportarReporte()">
                 <i class="fas fa-download"></i> Exportar
             </button>
@@ -211,10 +211,10 @@ require_once 'includes/layout_header.php';
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card bg-dark text-white">
+            <div class="card bg-light text-dark border">
                 <div class="card-body text-center">
-                    <h5><?php echo date('M Y', strtotime($mes_seleccionado . '-01')); ?></h5>
-                    <small>Período</small>
+                    <h5 class="mb-1"><?php echo date('M Y', strtotime($mes_seleccionado . '-01')); ?></h5>
+                    <small class="text-muted">Período</small>
                 </div>
             </div>
         </div>
@@ -237,9 +237,9 @@ require_once 'includes/layout_header.php';
                             <p class="text-muted">No hay ventas de vendedores en el período seleccionado</p>
                         </div>
                     <?php else: ?>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead class="table-dark">
+                        <div class="table-responsive-md">
+                            <table class="table table-striped accessibility-fix">
+                                <thead class="thead-titulos">
                                     <tr>
                                         <th>Pos.</th>
                                         <th>Vendedor</th>

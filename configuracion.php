@@ -455,7 +455,7 @@ include 'includes/layout_header.php';
                             <h5><i class="fas fa-info-circle"></i> Información del Sistema</h5>
                         </div>
                         <div class="card-body">
-                            <table class="table table-sm">
+                            <table class="table table-sm accessibility-fix">
                                 <tr>
                                     <td><strong>Versión:</strong></td>
                                     <td><?php echo $config['version_sistema'] ?? '2.0.0'; ?></td>
@@ -538,7 +538,7 @@ include 'includes/layout_header.php';
                                     </h6>
                                 </div>
                                 <div class="card-body">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm accessibility-fix">
                                         <tr>
                                             <td><strong>Versión PHP:</strong></td>
                                             <td><?php echo phpversion(); ?></td>

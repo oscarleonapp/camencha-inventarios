@@ -63,7 +63,7 @@ require_once 'includes/layout_header.php';
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
                 <h2>
                     <i class="fas fa-download"></i> 
                     <span class="editable" data-label="exportacion_titulo">Exportación de Datos</span>
@@ -339,7 +339,7 @@ require_once 'includes/layout_header.php';
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card bg-warning text-white">
+                    <div class="card bg-warning text-dark">
                         <div class="card-body text-center">
                             <i class="fas fa-warehouse fa-2x mb-2"></i>
                             <h4><?php echo $db->query("SELECT COUNT(*) FROM inventarios")->fetchColumn(); ?></h4>

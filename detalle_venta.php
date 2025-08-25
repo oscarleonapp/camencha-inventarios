@@ -79,7 +79,7 @@ if ($_POST && isset($_POST['action'])) {
                         }
                         
                         // Registrar movimiento
-                        $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id) 
+                        $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id) 
                                            VALUES ('entrada', ?, ?, ?, 'Reembolso de venta', ?, 'devolucion', ?)";
                         $stmt_movimiento = $db->prepare($query_movimiento);
                         $stmt_movimiento->execute([$componente['producto_elemento_id'], $venta['tienda_id'], $cantidad_reintegrar, $venta_id, $_SESSION['usuario_id']]);
@@ -101,7 +101,7 @@ if ($_POST && isset($_POST['action'])) {
                     }
                     
                     // Registrar movimiento
-                    $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id) 
+                    $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id) 
                                        VALUES ('entrada', ?, ?, ?, 'Reembolso de venta', ?, 'devolucion', ?)";
                     $stmt_movimiento = $db->prepare($query_movimiento);
                     $stmt_movimiento->execute([$detalle['producto_id'], $venta['tienda_id'], $detalle['cantidad'], $venta_id, $_SESSION['usuario_id']]);
@@ -200,8 +200,8 @@ require_once 'includes/layout_header.php';
                     </div>
 
                     <h6>Productos Vendidos</h6>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
+                    <div class="table-responsive-md">
+                        <table class="table table-striped accessibility-fix">
                             <thead>
                                 <tr>
                                     <th>Código</th>

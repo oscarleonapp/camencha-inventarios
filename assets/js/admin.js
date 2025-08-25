@@ -128,7 +128,9 @@ class NotificationSystem {
     
     show(message, type = 'info', duration = 5000) {
         const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-white bg-${type}`;
+        const textColor = (type === 'warning' || type === 'light') ? 'text-dark' : 'text-white';
+        const closeBtnClass = (textColor === 'text-dark') ? 'btn-close' : 'btn-close-white';
+        toast.className = `toast align-items-center ${textColor} bg-${type}`;
         toast.setAttribute('role', 'alert');
         toast.innerHTML = `
             <div class="d-flex">
@@ -136,7 +138,7 @@ class NotificationSystem {
                     <i class="fas fa-${this.getIcon(type)} me-2"></i>
                     ${message}
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                <button type="button" class="btn-close ${closeBtnClass} me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         `;
         

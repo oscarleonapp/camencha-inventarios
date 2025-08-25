@@ -1,0 +1,1644 @@
+/* SISTEMA DE INVENTARIOS - TEMA MODERNO PROFESIONAL */
+
+/* ========== VARIABLES DE DISEÑO ========== */
+:root {
+    /* Paleta base (tokens) */
+    --primary-color: #4f46e5;       /* Indigo 600 */
+    --primary-700: #4338ca;
+    --primary-800: #3730a3;
+    --secondary-color: #475569;     /* Slate 600 */
+
+    --success-color: #059669;       /* Emerald 600 */
+    --success-700: #047857;
+    --danger-color: #e11d48;        /* Rose 600 */
+    --danger-700: #be123c;
+    --warning-color: #d97706;       /* Amber 600 */
+    --warning-text: #111827;        /* Slate 900 for contrast */
+    --info-color: #0369a1;          /* Sky 700 */
+    --info-700: #075985;
+
+    /* Neutros y superficies */
+    --text-primary: #0f172a;        /* Slate 900 */
+    --text-secondary: #334155;      /* Slate 700 */
+    --text-muted: #64748b;          /* Slate 500 */
+    --surface: #ffffff;
+    --surface-subtle: #f8fafc;      /* Slate 50 */
+    --border-color: #e5e7eb;        /* Slate 200 */
+
+    /* Gradientes actualizados (mantienen estilo, cambian colores) */
+    --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-700) 100%);
+    --secondary-gradient: linear-gradient(135deg, #94a3b8 0%, var(--secondary-color) 100%);
+    --success-gradient: linear-gradient(135deg, var(--success-color) 0%, var(--success-700) 100%);
+    --warning-gradient: linear-gradient(135deg, var(--warning-color) 0%, #b45309 100%);
+    --danger-gradient: linear-gradient(135deg, var(--danger-color) 0%, var(--danger-700) 100%);
+
+    /* Grises legacy (compat) */
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: var(--border-color);
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #0f172a;
+    --gray-900: #0b1220;
+
+    /* Sombras profesionales */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    
+    /* Radios modernos */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+    
+    /* Tipografía */
+    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-secondary: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
+    
+    /* Espaciado */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    /* Layout */
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 70px;
+    --header-height: 70px;
+    --border-width: 1px;
+    
+    /* Transiciones */
+    --transition-fast: 0.15s ease-out;
+    --transition-normal: 0.3s ease-out;
+    --transition-slow: 0.5s ease-out;
+}
+
+/* Bootstrap CSS variable mapping to enable cascade without overrides */
+:root {
+  --bs-primary: var(--primary-color);
+  --bs-primary-rgb: 79, 70, 229;
+  --bs-secondary: var(--secondary-color);
+  --bs-secondary-rgb: 71, 85, 105;
+  --bs-success: var(--success-color);
+  --bs-success-rgb: 5, 150, 105;
+  --bs-danger: var(--danger-color);
+  --bs-danger-rgb: 225, 29, 72;
+  --bs-warning: var(--warning-color);
+  --bs-warning-rgb: 217, 119, 6;
+  --bs-info: var(--info-color);
+  --bs-info-rgb: 3, 105, 161;
+  --bs-body-bg: var(--surface);
+  --bs-body-color: var(--text-primary);
+  --bs-border-color: var(--border-color);
+  --bs-link-color: var(--primary-color);
+  --bs-link-hover-color: var(--primary-700);
+}
+
+/* ========== GOOGLE FONTS IMPORT ========== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ========== BASE RESET Y ESTILOS GLOBALES ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    font-family: var(--font-primary);
+    background: var(--surface-subtle);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== HEADER/TOPBAR MODERNO ========== */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-bottom: var(--border-width) solid var(--border-color);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-xl);
+    transition: all var(--transition-normal);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-collapsed .topbar {
+    left: var(--sidebar-collapsed-width);
+}
+
+.sidebar-expanded .topbar {
+    left: var(--sidebar-width);
+}
+
+.topbar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.topbar-toggle:hover {
+    background: var(--surface-subtle);
+    color: var(--primary-color);
+}
+
+.topbar-brand {
+    margin-left: var(--spacing-lg);
+    font-family: var(--font-secondary);
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    position: relative;
+}
+
+.topbar-brand::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--primary-gradient);
+    border-radius: 2px;
+}
+
+.topbar-user {
+    margin-left: auto;
+}
+
+.user-dropdown {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast);
+    color: var(--gray-700);
+    cursor: pointer;
+}
+
+.user-dropdown:hover {
+    background: var(--gray-100);
+}
+
+.user-dropdown .fa-user-circle {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+/* ========== SIDEBAR MODERNO ========== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: linear-gradient(180deg, var(--surface) 0%, var(--surface-subtle) 100%);
+    border-right: var(--border-width) solid var(--border-color);
+    z-index: 999;
+    transition: all var(--transition-normal);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--gray-300);
+    border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-400);
+}
+
+.sidebar-header {
+    padding: var(--spacing-xl);
+    border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    font-family: var(--font-secondary);
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.logo i {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: var(--radius-lg);
+    font-size: 1.25rem;
+}
+
+.sidebar-collapsed .logo span {
+    display: none;
+}
+
+/* Navegación del sidebar */
+.sidebar-nav {
+    list-style: none;
+    padding: var(--spacing-lg) 0;
+}
+
+.nav-item {
+    margin-bottom: var(--spacing-xs);
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-xl);
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    border-radius: 0;
+    position: relative;
+    font-weight: 500;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: var(--primary-gradient);
+    transition: width var(--transition-fast);
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--primary-color);
+    background: rgba(102, 126, 234, 0.08);
+}
+
+.nav-link:hover::before,
+.nav-link.active::before {
+    width: 4px;
+}
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
+.nav-text {
+    transition: opacity var(--transition-normal);
+}
+
+.sidebar-collapsed .nav-text {
+    opacity: 0;
+}
+
+.submenu-arrow {
+    margin-left: auto;
+    transition: transform var(--transition-fast);
+}
+
+.nav-link[aria-expanded="true"] .submenu-arrow {
+    transform: rotate(180deg);
+}
+
+/* Submenús */
+.submenu {
+    background: var(--surface-subtle);
+    border-left: 2px solid var(--border-color);
+    margin-left: var(--spacing-xl);
+}
+
+.submenu-list {
+    list-style: none;
+}
+
+.submenu-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
+}
+
+.submenu-link:hover,
+.submenu-link.active {
+    color: var(--primary-color);
+    background: rgba(79, 70, 229, 0.06);
+}
+
+.submenu-icon {
+    font-size: 0.875rem;
+}
+
+/* ========== MAIN CONTENT ========== */
+.main-content {
+    margin-left: var(--sidebar-width);
+    margin-top: var(--header-height);
+    padding: var(--spacing-2xl);
+    min-height: calc(100vh - var(--header-height));
+    transition: margin-left var(--transition-normal);
+}
+
+.sidebar-collapsed .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+/* ========== CARDS MODERNOS ========== */
+.card {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: var(--border-width) solid var(--border-color);
+    transition: all var(--transition-normal);
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: var(--surface-subtle);
+    border-bottom: var(--border-width) solid var(--border-color);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    display: flex;
+    align-items: center;
+    justify-content: between;
+}
+
+.card-header h1,
+.card-header h2,
+.card-header h3,
+.card-header h4,
+.card-header h5 {
+    margin: 0;
+    font-family: var(--font-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-body {
+    padding: var(--spacing-xl);
+}
+
+.card-footer {
+    background: var(--surface-subtle);
+    border-top: var(--border-width) solid var(--border-color);
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+/* ========== STATS CARDS ========== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+    border: var(--border-width) solid var(--gray-200);
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.stat-card.success::before {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+}
+
+.stat-card.warning::before {
+    background: linear-gradient(135deg, #ed8936, #dd6b20);
+}
+
+.stat-card.danger::before {
+    background: linear-gradient(135deg, #f56565, #e53e3e);
+}
+
+.stat-card.info::before {
+    background: linear-gradient(135deg, #4299e1, #3182ce);
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-lg);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.stat-card.success .stat-icon {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+}
+
+.stat-card.warning .stat-icon {
+    background: linear-gradient(135deg, #ed8936, #dd6b20);
+}
+
+.stat-card.danger .stat-icon {
+    background: linear-gradient(135deg, #f56565, #e53e3e);
+}
+
+.stat-card.info .stat-icon {
+    background: linear-gradient(135deg, #4299e1, #3182ce);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.stat-change {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: var(--spacing-sm);
+}
+
+.stat-change.positive {
+    color: var(--success-color);
+}
+
+.stat-change.negative {
+    color: var(--danger-color);
+}
+
+/* ========== BOTONES MODERNOS ========== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    border: var(--border-width) solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    min-height: 44px;
+}
+
+.btn:focus {
+    outline: 2px solid rgba(124, 58, 237, 0.35);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+.btn-primary {
+    background: var(--primary-gradient);
+    color: #ffffff;
+    border-color: transparent;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--surface-subtle);
+    border-color: #cbd5e1;
+}
+
+.btn-success {
+    background: var(--success-gradient);
+    color: #ffffff;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-warning {
+    background: var(--warning-gradient);
+    color: var(--warning-text);
+}
+
+.btn-danger {
+    background: var(--danger-gradient);
+    color: #ffffff;
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.btn-sm {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.875rem;
+    min-height: 36px;
+}
+
+.btn-lg {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: 1.125rem;
+    min-height: 52px;
+}
+
+/* ========== FORMULARIOS MODERNOS ========== */
+.form-control {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: var(--border-width) solid var(--gray-300);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-family: var(--font-primary);
+    transition: all var(--transition-fast);
+    background: white;
+    min-height: 48px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-control::placeholder {
+    color: var(--gray-400);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-group-text {
+    position: absolute;
+    left: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    pointer-events: none;
+}
+
+.input-group .form-control {
+    padding-left: calc(var(--spacing-md) + 20px + var(--spacing-sm));
+}
+
+/* ========== TABLAS MODERNAS ========== */
+[class*="table-responsive"] thead th,
+.responsive-auto-wrapper thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2; /* sobre filas */
+    background: var(--gray-50);
+    box-shadow: 0 1px 0 var(--gray-200);
+}
+.table-responsive,
+[class*="table-responsive"] {
+    border-radius: var(--radius-xl);
+    /* Permitir scroll horizontal cuando sea necesario (tablets/móviles) */
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: var(--shadow-sm);
+    border: var(--border-width) solid var(--gray-200);
+    background: white;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: var(--gray-50);
+    padding: var(--spacing-lg);
+    font-weight: 600;
+    color: #000;
+    border-bottom: var(--border-width) solid var(--gray-200);
+    text-align: left;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Encabezados estándar claros para tablas */
+.thead-titulos th {
+    background: var(--gray-50);
+    color: #000;
+}
+
+.table td {
+    padding: var(--spacing-lg);
+    border-bottom: var(--border-width) solid var(--gray-100);
+    color: var(--gray-800);
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: var(--gray-50);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Auto-wrapper responsivo inyectado por JS para tablas sin contenedor */
+.responsive-auto-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.responsive-auto-wrapper table {
+    margin-bottom: 0;
+}
+
+@media (max-width: 1024px) {
+    /* Evitar quiebres de línea para habilitar scroll horizontal en pantallas pequeñas */
+    .responsive-auto-wrapper table th,
+    .responsive-auto-wrapper table td {
+        white-space: nowrap;
+    }
+    /* Ancho mínimo general para tablas comunes (ventas, usuarios, etc.) */
+    [class*="table-responsive"] > table,
+    .responsive-auto-wrapper > table {
+        min-width: 900px;
+    }
+
+    /* Ajustes de densidad para tablas en tablet */
+    .table th,
+    .table td {
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Botones: aumentar zona táctil en tablet */
+    .btn,
+    .btn-sm,
+    .btn-group-sm > .btn {
+        min-height: 40px;
+        min-width: 40px;
+    }
+
+    /* Grupos de botones: permitir múltiples líneas en tablet */
+    .btn-group,
+    .btn-toolbar,
+    .rs-wrap-sm {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    /* Controles de formulario: mejorar tocabilidad */
+    .form-control,
+    .form-select {
+        min-height: 40px;
+        padding-top: 0.4rem;
+        padding-bottom: 0.4rem;
+    }
+
+    /* Column widths: Contabilidad Reconciliación */
+    .reconciliacion-table th:nth-child(1),
+    .reconciliacion-table td:nth-child(1) { /* Tienda */
+        min-width: 180px;
+    }
+    .reconciliacion-table th:nth-child(2),
+    .reconciliacion-table td:nth-child(2) { /* Flujo Completo */
+        min-width: 200px;
+    }
+    .reconciliacion-table th:nth-child(3),
+    .reconciliacion-table td:nth-child(3) { /* Totales */
+        min-width: 160px;
+    }
+    .reconciliacion-table th:nth-child(4),
+    .reconciliacion-table td:nth-child(4) { /* Diferencias */
+        min-width: 140px;
+    }
+    .reconciliacion-table th:nth-child(5),
+    .reconciliacion-table td:nth-child(5) { /* Boletas */
+        min-width: 140px;
+    }
+    .reconciliacion-table th:nth-child(6),
+    .reconciliacion-table td:nth-child(6) { /* Estado */
+        min-width: 120px;
+    }
+    .reconciliacion-table th:nth-child(7),
+    .reconciliacion-table td:nth-child(7) { /* Acciones */
+        min-width: 180px;
+    }
+
+    /* Column widths: Boletas */
+    .boletas-table th:nth-child(1),
+    .boletas-table td:nth-child(1) { /* Número */
+        min-width: 120px;
+    }
+    .boletas-table th:nth-child(2),
+    .boletas-table td:nth-child(2) { /* Fecha */
+        min-width: 120px;
+    }
+    .boletas-table th:nth-child(3),
+    .boletas-table td:nth-child(3) { /* Proveedor */
+        min-width: 180px;
+    }
+    .boletas-table th:nth-child(4),
+    .boletas-table td:nth-child(4) { /* Descripción */
+        min-width: 260px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .boletas-table th:nth-child(5),
+    .boletas-table td:nth-child(5) { /* Imagen */
+        min-width: 120px;
+    }
+    .boletas-table th:nth-child(6),
+    .boletas-table td:nth-child(6) { /* Subido por */
+        min-width: 160px;
+    }
+    .boletas-table th:nth-child(7),
+    .boletas-table td:nth-child(7) { /* Fecha Subida */
+        min-width: 140px;
+    }
+    .boletas-table th:nth-child(8),
+    .boletas-table td:nth-child(8) { /* Acciones */
+        min-width: 160px;
+    }
+
+    /* Column widths: Aprobación Ventas Vendedor */
+    .aprobacion-vendedor-table th:nth-child(1),
+    .aprobacion-vendedor-table td:nth-child(1) { /* Fecha Reporte */
+        min-width: 150px;
+    }
+    .aprobacion-vendedor-table th:nth-child(2),
+    .aprobacion-vendedor-table td:nth-child(2) { /* Vendedor */
+        min-width: 180px;
+    }
+    .aprobacion-vendedor-table th:nth-child(3),
+    .aprobacion-vendedor-table td:nth-child(3) { /* Fecha Venta */
+        min-width: 130px;
+    }
+    .aprobacion-vendedor-table th:nth-child(4),
+    .aprobacion-vendedor-table td:nth-child(4) { /* Total Reportado */
+        min-width: 140px;
+    }
+    .aprobacion-vendedor-table th:nth-child(5),
+    .aprobacion-vendedor-table td:nth-child(5) { /* Match Sistema */
+        min-width: 170px;
+    }
+    .aprobacion-vendedor-table th:nth-child(6),
+    .aprobacion-vendedor-table td:nth-child(6) { /* Confianza */
+        min-width: 130px;
+    }
+    .aprobacion-vendedor-table th:nth-child(7),
+    .aprobacion-vendedor-table td:nth-child(7) { /* Descripción */
+        min-width: 240px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .aprobacion-vendedor-table th:nth-child(8),
+    .aprobacion-vendedor-table td:nth-child(8) { /* Acciones */
+        min-width: 180px;
+    }
+
+    /* Column widths: Inventarios (Estado por Tienda) */
+    .inventarios-table th:nth-child(1),
+    .inventarios-table td:nth-child(1) { /* Tienda */
+        min-width: 180px;
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .inventarios-table th:nth-child(3),
+    .inventarios-table td:nth-child(3) { /* Producto */
+        min-width: 220px;
+        max-width: 360px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Column widths: Cotizaciones (Listado) */
+    .cotizaciones-table th:nth-child(5),
+    .cotizaciones-table td:nth-child(5) { /* Cliente */
+        min-width: 240px;
+        max-width: 360px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .cotizaciones-table th:nth-child(9),
+    .cotizaciones-table td:nth-child(9) { /* Usuario */
+        min-width: 160px;
+    }
+
+    /* Column widths: Proveedores */
+    .proveedores-table th:nth-child(1),
+    .proveedores-table td:nth-child(1) { /* Nombre */
+        min-width: 200px; max-width: 320px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .proveedores-table th:nth-child(2),
+    .proveedores-table td:nth-child(2) { /* Email */
+        min-width: 220px; max-width: 340px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .proveedores-table th:nth-child(3),
+    .proveedores-table td:nth-child(3) { /* Teléfono */
+        min-width: 140px;
+    }
+    .proveedores-table th:nth-child(4),
+    .proveedores-table td:nth-child(4) { /* Dirección */
+        min-width: 260px; max-width: 420px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .proveedores-table th:nth-child(7),
+    .proveedores-table td:nth-child(7) { /* Acciones */
+        min-width: 180px;
+    }
+
+    /* Column widths: Usuarios */
+    .usuarios-table th:nth-child(1),
+    .usuarios-table td:nth-child(1) { /* # */
+        min-width: 60px; width: 60px;
+    }
+    .usuarios-table th:nth-child(2),
+    .usuarios-table td:nth-child(2) { /* Usuario */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .usuarios-table th:nth-child(3),
+    .usuarios-table td:nth-child(3) { /* Rol */
+        min-width: 150px;
+    }
+    .usuarios-table th:nth-child(4),
+    .usuarios-table td:nth-child(4) { /* Estado */
+        min-width: 120px;
+    }
+    .usuarios-table th:nth-child(6),
+    .usuarios-table td:nth-child(6) { /* Acciones */
+        min-width: 180px;
+    }
+
+    /* Column widths: Reportes de Vendedores (Ranking) */
+    .reportes-vendedores-table th:nth-child(2),
+    .reportes-vendedores-table td:nth-child(2) { /* Vendedor */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reportes-vendedores-table th:nth-child(4),
+    .reportes-vendedores-table td:nth-child(4) { /* Tienda */
+        min-width: 180px; max-width: 280px; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Column widths: Gerente Dashboard (reportes diarios) */
+    .gerente-dashboard-table th:nth-child(1),
+    .gerente-dashboard-table td:nth-child(1) { /* Tienda */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .gerente-dashboard-table th:nth-child(2),
+    .gerente-dashboard-table td:nth-child(2) { /* Encargado */
+        min-width: 200px; max-width: 320px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .gerente-dashboard-table th:nth-child(3),
+    .gerente-dashboard-table td:nth-child(3),
+    .gerente-dashboard-table th:nth-child(4),
+    .gerente-dashboard-table td:nth-child(4),
+    .gerente-dashboard-table th:nth-child(5),
+    .gerente-dashboard-table td:nth-child(5) { /* Totales y Diferencia */
+        min-width: 140px;
+    }
+    .gerente-dashboard-table th:nth-child(6),
+    .gerente-dashboard-table td:nth-child(6) { /* Desglose Reportado */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .gerente-dashboard-table th:nth-child(7),
+    .gerente-dashboard-table td:nth-child(7) { /* Estado */
+        min-width: 140px;
+    }
+    .gerente-dashboard-table th:nth-child(8),
+    .gerente-dashboard-table td:nth-child(8) { /* Acciones */
+        min-width: 180px;
+    }
+
+    /* Column widths: Ranking Vendedores (tabla completa) */
+    .ranking-vendedores-table th:nth-child(1),
+    .ranking-vendedores-table td:nth-child(1) { /* Posición */
+        min-width: 100px;
+    }
+    .ranking-vendedores-table th:nth-child(2),
+    .ranking-vendedores-table td:nth-child(2) { /* Vendedor */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ranking-vendedores-table th:nth-child(9),
+    .ranking-vendedores-table td:nth-child(9) { /* Tiendas */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ranking-vendedores-table th:nth-child(10),
+    .ranking-vendedores-table td:nth-child(10) { /* Contacto */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Column widths: Ventas (historial y módulo) */
+    .ventas-table th:nth-child(1),
+    .ventas-table td:nth-child(1),
+    .historial-ventas-table th:nth-child(1),
+    .historial-ventas-table td:nth-child(1) { /* ID */
+        min-width: 80px;
+        width: 80px;
+    }
+    .ventas-table th:nth-child(2),
+    .ventas-table td:nth-child(2),
+    .historial-ventas-table th:nth-child(2),
+    .historial-ventas-table td:nth-child(2) { /* Fecha */
+        min-width: 160px;
+    }
+    .ventas-table th:nth-child(3),
+    .ventas-table td:nth-child(3),
+    .historial-ventas-table th:nth-child(3),
+    .historial-ventas-table td:nth-child(3) { /* Tienda */
+        min-width: 180px; max-width: 280px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ventas-table th:nth-child(4),
+    .ventas-table td:nth-child(4),
+    .historial-ventas-table th:nth-child(4),
+    .historial-ventas-table td:nth-child(4) { /* Vendedor */
+        min-width: 200px; max-width: 320px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .historial-ventas-table th:nth-child(5),
+    .historial-ventas-table td:nth-child(5) { /* Productos (solo historial) */
+        min-width: 240px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ventas-table th:nth-child(5),
+    .ventas-table td:nth-child(5),
+    .historial-ventas-table th:nth-child(6),
+    .historial-ventas-table td:nth-child(6) { /* Total */
+        min-width: 140px;
+    }
+    .ventas-table th:nth-child(6),
+    .ventas-table td:nth-child(6),
+    .historial-ventas-table th:nth-child(7),
+    .historial-ventas-table td:nth-child(7) { /* Estado */
+        min-width: 120px;
+    }
+    .ventas-table th:nth-child(7),
+    .ventas-table td:nth-child(7),
+    .historial-ventas-table th:nth-child(8),
+    .historial-ventas-table td:nth-child(8) { /* Acciones */
+        min-width: 160px;
+    }
+
+    /* Column widths: Reorden */
+    .reorden-table th:nth-child(1),
+    .reorden-table td:nth-child(1) { /* Producto */
+        min-width: 280px; max-width: 480px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reorden-table th:nth-child(2),
+    .reorden-table td:nth-child(2),
+    .reorden-table th:nth-child(3),
+    .reorden-table td:nth-child(3),
+    .reorden-table th:nth-child(4),
+    .reorden-table td:nth-child(4) { /* Disponible, Mínimo, Sugerido */
+        min-width: 120px;
+    }
+    .reorden-table th:nth-child(5),
+    .reorden-table td:nth-child(5) { /* Ordenar */
+        min-width: 140px;
+    }
+    .reorden-table th:nth-child(6),
+    .reorden-table td:nth-child(6) { /* Precio Compra */
+        min-width: 160px;
+    }
+
+    /* Column widths: Reparaciones (enviar/recibir/módulo) */
+    .reparaciones-table th:nth-child(1),
+    .reparaciones-table td:nth-child(1) { /* Producto o Tienda según tabla */
+        min-width: 200px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reparaciones-enviar-table th:nth-child(1),
+    .reparaciones-enviar-table td:nth-child(1) { /* Tienda */
+        min-width: 180px; max-width: 280px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reparaciones-enviar-table th:nth-child(3),
+    .reparaciones-enviar-table td:nth-child(3) { /* Producto */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reparaciones-recibir-table th:nth-child(2),
+    .reparaciones-recibir-table td:nth-child(2) { /* Producto */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reparaciones-recibir-table th:nth-child(3),
+    .reparaciones-recibir-table td:nth-child(3) { /* Tienda */
+        min-width: 180px; max-width: 280px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reparaciones-recibir-table th:nth-child(8),
+    .reparaciones-recibir-table td:nth-child(8) { /* Problema/Notas */
+        min-width: 240px; max-width: 420px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reparaciones-recibir-table th:nth-child(9),
+    .reparaciones-recibir-table td:nth-child(9) { /* Acciones */
+        min-width: 200px;
+    }
+
+    /* Column widths: Lista de Tiendas */
+    .lista-tiendas-table th:nth-child(1),
+    .lista-tiendas-table td:nth-child(1) { /* ID */
+        min-width: 70px; width: 70px;
+    }
+    .lista-tiendas-table th:nth-child(2),
+    .lista-tiendas-table td:nth-child(2) { /* Nombre */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lista-tiendas-table th:nth-child(3),
+    .lista-tiendas-table td:nth-child(3) { /* Dirección */
+        min-width: 260px; max-width: 420px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lista-tiendas-table th:nth-child(4),
+    .lista-tiendas-table td:nth-child(4) { /* Teléfono */
+        min-width: 160px;
+    }
+    .lista-tiendas-table th:nth-child(5),
+    .lista-tiendas-table td:nth-child(5) { /* Encargado */
+        min-width: 200px; max-width: 320px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lista-tiendas-table th:nth-child(6),
+    .lista-tiendas-table td:nth-child(6) { /* Fecha */
+        min-width: 160px;
+    }
+    .lista-tiendas-table th:nth-child(7),
+    .lista-tiendas-table td:nth-child(7) { /* Estado */
+        min-width: 120px;
+    }
+    .lista-tiendas-table th:nth-child(8),
+    .lista-tiendas-table td:nth-child(8) { /* Acciones */
+        min-width: 180px;
+    }
+
+    /* Column widths: Lista Encargados */
+    .lista-encargados-table th:nth-child(1),
+    .lista-encargados-table td:nth-child(1) { /* ID */
+        min-width: 70px; width: 70px;
+    }
+    .lista-encargados-table th:nth-child(2),
+    .lista-encargados-table td:nth-child(2) { /* Nombre */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lista-encargados-table th:nth-child(3),
+    .lista-encargados-table td:nth-child(3) { /* Email */
+        min-width: 240px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lista-encargados-table th:nth-child(4),
+    .lista-encargados-table td:nth-child(4) { /* Tiendas Asignadas */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lista-encargados-table th:nth-child(5),
+    .lista-encargados-table td:nth-child(5) { /* Comisión */
+        min-width: 140px;
+    }
+    .lista-encargados-table th:nth-child(6),
+    .lista-encargados-table td:nth-child(6) { /* Estado */
+        min-width: 120px;
+    }
+    .lista-encargados-table th:nth-child(7),
+    .lista-encargados-table td:nth-child(7) { /* Fecha */
+        min-width: 160px;
+    }
+    .lista-encargados-table th:nth-child(8),
+    .lista-encargados-table td:nth-child(8) { /* Acciones */
+        min-width: 180px;
+    }
+
+    /* Column widths: Tiendas (página simple) */
+    .tiendas-table th:nth-child(1),
+    .tiendas-table td:nth-child(1) { /* ID */
+        min-width: 70px; width: 70px;
+    }
+    .tiendas-table th:nth-child(2),
+    .tiendas-table td:nth-child(2) { /* Nombre */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .tiendas-table th:nth-child(3),
+    .tiendas-table td:nth-child(3) { /* Estado */
+        min-width: 120px;
+    }
+    .tiendas-table th:nth-child(4),
+    .tiendas-table td:nth-child(4) { /* Fecha */
+        min-width: 160px;
+    }
+
+    /* Column widths: Items de OC (partials) */
+    .oc-items-table th:nth-child(1),
+    .oc-items-table td:nth-child(1) { /* Producto */
+        min-width: 240px; max-width: 420px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .oc-items-table th:nth-child(5),
+    .oc-items-table td:nth-child(5) { /* Recibir ahora */
+        min-width: 140px;
+    }
+
+    /* Column widths: Compras (listado de OC) */
+    .compras-table th:nth-child(1),
+    .compras-table td:nth-child(1) { /* Número */
+        min-width: 140px;
+    }
+    .compras-table th:nth-child(2),
+    .compras-table td:nth-child(2) { /* #OC */
+        min-width: 90px; width: 90px;
+    }
+    .compras-table th:nth-child(3),
+    .compras-table td:nth-child(3) { /* Proveedor */
+        min-width: 220px; max-width: 360px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .compras-table th:nth-child(4),
+    .compras-table td:nth-child(4) { /* Estado */
+        min-width: 120px;
+    }
+    .compras-table th:nth-child(5),
+    .compras-table td:nth-child(5),
+    .compras-table th:nth-child(6),
+    .compras-table td:nth-child(6) { /* Items y Pendientes */
+        min-width: 110px;
+    }
+    .compras-table th:nth-child(7),
+    .compras-table td:nth-child(7) { /* Creada por */
+        min-width: 200px; max-width: 320px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .compras-table th:nth-child(8),
+    .compras-table td:nth-child(8) { /* Fecha */
+        min-width: 170px;
+    }
+    .compras-table th:nth-child(9),
+    .compras-table td:nth-child(9) { /* Acciones */
+        min-width: 180px;
+    }
+
+    /* Column widths: Traslados (órdenes internas) */
+    .traslados-table th:nth-child(1),
+    .traslados-table td:nth-child(1) { /* Orden # */
+        min-width: 140px;
+    }
+    .traslados-table th:nth-child(2),
+    .traslados-table td:nth-child(2) { /* Talonario # */
+        min-width: 150px;
+    }
+    .traslados-table th:nth-child(3),
+    .traslados-table td:nth-child(3) { /* Tiendas */
+        min-width: 260px; max-width: 420px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .traslados-table th:nth-child(4),
+    .traslados-table td:nth-child(4) { /* Estado */
+        min-width: 120px;
+    }
+    .traslados-table th:nth-child(5),
+    .traslados-table td:nth-child(5) { /* Fecha */
+        min-width: 180px;
+    }
+    .traslados-table th:nth-child(6),
+    .traslados-table td:nth-child(6) { /* Productos */
+        min-width: 120px;
+    }
+    .traslados-table th:nth-child(7),
+    .traslados-table td:nth-child(7) { /* Acciones */
+        min-width: 200px;
+    }
+}
+
+/* ========== MIN-WIDTH SEGÚN TABLA/SECCIÓN ========== */
+/* Productos: muchas columnas (imagen, códigos, precios, proveedor, acciones) */
+.table-responsive .productos-table,
+[class*="table-responsive"] .productos-table,
+.responsive-auto-wrapper .productos-table {
+    min-width: 1200px;
+}
+
+.productos-table th:nth-child(1),
+.productos-table td:nth-child(1) { /* checkbox */
+    min-width: 40px;
+    width: 40px;
+}
+
+.productos-table th:nth-child(2),
+.productos-table td:nth-child(2) { /* imagen */
+    min-width: 90px;
+    width: 90px;
+}
+
+.productos-table th:nth-child(3),
+.productos-table td:nth-child(3) { /* código */
+    min-width: 150px;
+}
+
+.productos-table th:nth-child(4),
+.productos-table td:nth-child(4) { /* nombre */
+    min-width: 220px;
+}
+
+.productos-table th:nth-child(6),
+.productos-table td:nth-child(6),
+.productos-table th:nth-child(7),
+.productos-table td:nth-child(7) { /* precios */
+    min-width: 120px;
+}
+
+.productos-table th:last-child,
+.productos-table td:last-child { /* acciones */
+    min-width: 180px;
+}
+
+/* Devoluciones */
+.table-responsive #tablaDevoluciones,
+[class*="table-responsive"] #tablaDevoluciones,
+.responsive-auto-wrapper #tablaDevoluciones {
+    min-width: 1000px;
+}
+
+/* Logs de movimientos (dashboard) */
+.table-responsive .movimientos-log-table,
+[class*="table-responsive"] .movimientos-log-table,
+.responsive-auto-wrapper .movimientos-log-table {
+    min-width: 900px;
+}
+
+/* Performance por tienda (dashboard) */
+.table-responsive .performance-tiendas-table,
+[class*="table-responsive"] .performance-tiendas-table,
+.responsive-auto-wrapper .performance-tiendas-table {
+    min-width: 800px;
+}
+
+/* Compras: items de OC */
+.table-responsive #tablaItemsOC,
+[class*="table-responsive"] #tablaItemsOC,
+.responsive-auto-wrapper #tablaItemsOC {
+    min-width: 800px;
+}
+
+/* Cotizaciones: items de cotización */
+.table-responsive #tablaItemsCtz,
+[class*="table-responsive"] #tablaItemsCtz,
+.responsive-auto-wrapper #tablaItemsCtz {
+    min-width: 800px;
+}
+
+/* Contabilidad: Reconciliación */
+.table-responsive .reconciliacion-table,
+[class*="table-responsive"] .reconciliacion-table,
+.responsive-auto-wrapper .reconciliacion-table {
+    min-width: 1100px;
+}
+
+/* Boletas */
+.table-responsive .boletas-table,
+[class*="table-responsive"] .boletas-table,
+.responsive-auto-wrapper .boletas-table {
+    min-width: 1000px;
+}
+
+/* Aprobación Ventas (Vendedor) */
+.table-responsive .aprobacion-vendedor-table,
+[class*="table-responsive"] .aprobacion-vendedor-table,
+.responsive-auto-wrapper .aprobacion-vendedor-table {
+    min-width: 1100px;
+}
+
+/* ========== BADGES Y LABELS ========== */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    border: 1px solid;
+}
+
+.badge-primary {
+    background: rgba(79, 70, 229, 0.12);
+    color: var(--primary-800);
+    border-color: rgba(79, 70, 229, 0.3);
+}
+
+.badge-success {
+    background: rgba(5, 150, 105, 0.12);
+    color: #065f46;
+    border-color: rgba(5, 150, 105, 0.3);
+}
+
+.badge-warning {
+    background: rgba(217, 119, 6, 0.18);
+    color: var(--warning-text);
+    border-color: rgba(217, 119, 6, 0.35);
+}
+
+.badge-danger {
+    background: rgba(225, 29, 72, 0.12);
+    color: #881337;
+    border-color: rgba(225, 29, 72, 0.3);
+}
+
+.badge-info {
+    background: rgba(3, 105, 161, 0.12);
+    color: #0c4a6e;
+    border-color: rgba(3, 105, 161, 0.3);
+}
+
+/* ========== ALERTAS MODERNAS ========== */
+.alert {
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: var(--border-width) solid;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    font-weight: 500;
+}
+
+.alert-success {
+    background: rgba(5, 150, 105, 0.12);
+    border-color: rgba(5, 150, 105, 0.3);
+    color: #065f46;
+}
+
+.alert-warning {
+    background: rgba(217, 119, 6, 0.18);
+    border-color: rgba(217, 119, 6, 0.35);
+    color: var(--warning-text);
+}
+
+.alert-danger {
+    background: rgba(225, 29, 72, 0.12);
+    border-color: rgba(225, 29, 72, 0.3);
+    color: #881337;
+}
+
+.alert-info {
+    background: rgba(3, 105, 161, 0.12);
+    border-color: rgba(3, 105, 161, 0.3);
+    color: #0c4a6e;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 1024px) {
+    .main-content {
+        padding: var(--spacing-lg);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar-expanded .sidebar {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: var(--spacing-md);
+    }
+    
+    .topbar {
+        left: 0;
+        padding: 0 var(--spacing-lg);
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .stat-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+    }
+}
+
+/* ========== ANIMACIONES Y MICROINTERACCIONES ========== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.4s ease-out;
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Efectos hover para elementos interactivos */
+.interactive-hover {
+    transition: all var(--transition-normal);
+}
+
+.interactive-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ========== UTILIDADES ========== */
+/* Enlaces */
+a, .btn-link { color: var(--primary-color); }
+a:hover, .btn-link:hover { color: var(--primary-700); }
+
+.text-gradient {
+    color: var(--primary-color);
+    position: relative;
+}
+
+.text-gradient::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary-gradient);
+    border-radius: 2px;
+}
+
+.bg-gradient {
+    background: var(--primary-gradient);
+}
+
+.shadow-soft {
+    box-shadow: var(--shadow-sm);
+}
+
+.shadow-medium {
+    box-shadow: var(--shadow-md);
+}
+
+.shadow-hard {
+    box-shadow: var(--shadow-lg);
+}
+
+.rounded-soft {
+    border-radius: var(--radius-md);
+}
+
+.rounded-medium {
+    border-radius: var(--radius-lg);
+}
+
+.rounded-hard {
+    border-radius: var(--radius-xl);
+}
+
+/* ========== RESPONSIVE HELPERS (no !important) ========== */
+@media (max-width: 576px) {
+  /* Permite envolver grupos de botones en móvil */
+  .btn-group, .btn-toolbar { flex-wrap: wrap; }
+  .btn-group .btn, .btn-toolbar .btn { margin-bottom: .25rem; }
+  /* Utilidades opt-in */
+  .rs-wrap-sm { flex-wrap: wrap; }
+  .rs-full-sm { width: 100%; }
+}

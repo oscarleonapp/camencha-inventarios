@@ -17,7 +17,7 @@ $error = '';
 if ($_POST && isset($_POST['action']) && $_POST['action']==='crear_cotizacion') {
   validarCSRF();
   verificarPermiso('cotizaciones_crear','crear');
-  $tienda_id = (int)($_POST['tienda_id'] ?? 0);
+  // Removida referencia a tienda_id - no existe en la tabla
   $cliente_nombre = trim($_POST['cliente_nombre'] ?? '');
   $cliente_email = trim($_POST['cliente_email'] ?? '');
   $cliente_telefono = trim($_POST['cliente_telefono'] ?? '');
@@ -27,7 +27,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action']==='crear_cotizacion') 
   $precios = $_POST['precio'] ?? [];
 
   try {
-    if ($tienda_id<=0) throw new Exception('Tienda inválida');
+    // Validación de tienda removida - no aplica
     if ($cliente_nombre==='') throw new Exception('Nombre de cliente requerido');
     if (empty($producto_id)) throw new Exception('Debe agregar al menos un producto');
 
@@ -43,25 +43,21 @@ if ($_POST && isset($_POST['action']) && $_POST['action']==='crear_cotizacion') 
     if ($descuento<0) $descuento=0;
     $total = max(0, $subtotal - $descuento);
 
-    $stmtC = $db->prepare("INSERT INTO cotizaciones (numero, tienda_id, usuario_id, cliente_nombre, cliente_email, cliente_telefono, notas, subtotal, descuento, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmtC = $db->prepare("INSERT INTO cotizaciones (numero_cotizacion, usuario_id, cliente_nombre, cliente_email, cliente_telefono, notas, subtotal, descuento, total, fecha_cotizacion, fecha_vencimiento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY))");
     $ctz_prefix = obtenerConfiguracion('ctz_prefix', 'CTZ-');
     $ctz_next = (int)obtenerConfiguracion('ctz_next_number', 1);
     $ctz_numero = $ctz_prefix . str_pad($ctz_next, 6, '0', STR_PAD_LEFT);
-    $stmtC->execute([$ctz_numero, $tienda_id, $_SESSION['usuario_id'], $cliente_nombre, $cliente_email, $cliente_telefono, $notas, $subtotal, $descuento, $total]);
+    $stmtC->execute([$ctz_numero, $_SESSION['usuario_id'], $cliente_nombre, $cliente_email, $cliente_telefono, $notas, $subtotal, $descuento, $total]);
     actualizarConfiguracion('ctz_next_number', $ctz_next + 1);
     $ctz_id = $db->lastInsertId();
 
-    $stmtI = $db->prepare("INSERT INTO cotizacion_items (cotizacion_id, producto_id, descripcion, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmtI = $db->prepare("INSERT INTO detalle_cotizaciones (cotizacion_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)");
     for ($i=0;$i<count($producto_id);$i++) {
       $pid = (int)$producto_id[$i];
       $qty = max(0,(int)$cantidades[$i]);
       $pr = max(0,(float)$precios[$i]);
       if ($pid && $qty>0) {
-        // traer nombre como descripción base
-        $desc = $db->prepare("SELECT nombre FROM productos WHERE id = ?");
-        $desc->execute([$pid]);
-        $nombre = $desc->fetchColumn();
-        $stmtI->execute([$ctz_id, $pid, $nombre, $qty, $pr, $qty*$pr]);
+        $stmtI->execute([$ctz_id, $pid, $qty, $pr, $qty*$pr]);
       }
     }
     $db->commit();
@@ -73,11 +69,10 @@ if ($_POST && isset($_POST['action']) && $_POST['action']==='crear_cotizacion') 
 }
 
 // Datos base
-$tiendas = $db->query("SELECT id, nombre FROM tiendas WHERE activo=1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 $productos = $db->query("SELECT id, codigo, nombre, precio_venta FROM productos WHERE activo=1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
 // Listado cotizaciones
-$stmtL = $db->query("SELECT c.*, t.nombre AS tienda_nombre, u.nombre AS usuario_nombre FROM cotizaciones c JOIN tiendas t ON c.tienda_id=t.id JOIN usuarios u ON c.usuario_id=u.id ORDER BY c.fecha DESC LIMIT 100");
+$stmtL = $db->query("SELECT c.*, u.nombre AS usuario_nombre FROM cotizaciones c JOIN usuarios u ON c.usuario_id=u.id ORDER BY c.fecha_cotizacion DESC LIMIT 100");
 $cotizaciones = $stmtL->fetchAll(PDO::FETCH_ASSOC);
 
 include 'includes/layout_header.php';
@@ -90,9 +85,9 @@ include 'includes/layout_header.php';
 <script>document.addEventListener('DOMContentLoaded',()=>showError('<?php echo addslashes($_GET['error']); ?>'));</script>
 <?php endif; ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
   <h2><i class="fas fa-file-signature"></i> Cotizaciones</h2>
-  <div class="btn-group">
+  <div class="btn-group rs-wrap-sm">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaCotizacion">
       <i class="fas fa-plus"></i> Nueva Cotización
     </button>
@@ -105,14 +100,14 @@ include 'includes/layout_header.php';
 <div class="card mb-4">
   <div class="card-header"><i class="fas fa-list"></i> Últimas Cotizaciones</div>
   <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-striped align-middle">
+    <div class="table-responsive-md">
+      <table class="table table-striped align-middle accessibility-fix">
         <thead>
           <tr>
             <th>Número</th>
             <th>#</th>
             <th>Fecha</th>
-            <th>Tienda</th>
+            <th>Estado</th>
             <th>Cliente</th>
             <th>Subtotal</th>
             <th>Descuento</th>
@@ -124,10 +119,10 @@ include 'includes/layout_header.php';
         <tbody>
           <?php foreach ($cotizaciones as $c): ?>
           <tr>
-            <td><?php echo htmlspecialchars($c['numero'] ?: ''); ?></td>
+            <td><?php echo htmlspecialchars($c['numero_cotizacion'] ?: ''); ?></td>
             <td>#<?php echo $c['id']; ?></td>
-            <td><?php echo date('d/m/Y H:i', strtotime($c['fecha'])); ?></td>
-            <td><?php echo htmlspecialchars($c['tienda_nombre']); ?></td>
+            <td><?php echo date('d/m/Y', strtotime($c['fecha_cotizacion'])); ?></td>
+            <td><span class="badge bg-<?php echo $c['estado']=='borrador'?'secondary':($c['estado']=='enviada'?'primary':($c['estado']=='aceptada'?'success':'danger')); ?>"><?php echo ucfirst($c['estado']); ?></span></td>
             <td>
               <strong><?php echo htmlspecialchars($c['cliente_nombre']); ?></strong><br>
               <small class="text-muted"><?php echo htmlspecialchars($c['cliente_email'] ?: ''); ?><?php echo $c['cliente_telefono']? ' · '.htmlspecialchars($c['cliente_telefono']):''; ?></small>
@@ -148,7 +143,7 @@ include 'includes/layout_header.php';
           </tr>
           <?php endforeach; ?>
           <?php if (empty($cotizaciones)): ?>
-          <tr><td colspan="8" class="text-center text-muted">Sin cotizaciones</td></tr>
+          <tr><td colspan="9" class="text-center text-muted">Sin cotizaciones</td></tr>
           <?php endif; ?>
         </tbody>
       </table>
@@ -169,30 +164,21 @@ include 'includes/layout_header.php';
         </div>
         <div class="modal-body">
           <div class="row g-3 mb-3">
-            <div class="col-md-3">
-              <label class="form-label">Tienda</label>
-              <select class="form-select" name="tienda_id" required>
-                <option value="">Seleccionar...</option>
-                <?php foreach ($tiendas as $t): ?>
-                <option value="<?php echo $t['id']; ?>"><?php echo htmlspecialchars($t['nombre']); ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label">Cliente *</label>
-              <input type="text" class="form-control" name="cliente_nombre" required>
+              <input type="text" class="form-control" name="cliente_nombre" required placeholder="Nombre del cliente">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label">Email</label>
-              <input type="email" class="form-control" name="cliente_email">
+              <input type="email" class="form-control" name="cliente_email" placeholder="email@ejemplo.com">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label">Teléfono</label>
-              <input type="text" class="form-control" name="cliente_telefono">
+              <input type="text" class="form-control" name="cliente_telefono" placeholder="Teléfono de contacto">
             </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-sm align-middle" id="tablaItemsCtz">
+          <div class="table-responsive-md">
+            <table class="table table-sm align-middle accessibility-fix" id="tablaItemsCtz">
               <thead class="table-light">
                 <tr>
                   <th style="width:40%">Producto</th>
@@ -296,4 +282,3 @@ document.getElementById('formNuevaCotizacion').addEventListener('submit', functi
 </script>
 
 <?php include 'includes/layout_footer.php'; ?>
-

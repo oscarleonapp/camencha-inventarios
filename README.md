@@ -2,7 +2,7 @@
 
 Sistema completo de gestión de inventarios multi-tienda con gestión de vendedores, comisiones, reparaciones y control avanzado de stock desarrollado en PHP/MySQL.
 
-Nota para contribuidores: consulta las Repository Guidelines en [AGENTS.md](AGENTS.md) para estilo, comandos y procesos de PR.
+Nota para contribuidores: consulta las Repository Guidelines en [AGENTS.md](AGENTS.md) para estilo, comandos y procesos de PR. Para el uso de la nueva paleta de colores, revisa la [Guía de Paleta](GUIA_COLORES.md). El plan de evolución y mejoras se encuentra en [UPGRADE_PLAN.md](UPGRADE_PLAN.md).
 
 ## 🚀 Características Principales
 

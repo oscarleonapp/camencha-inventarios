@@ -16,7 +16,7 @@ $ctz->execute([$id]);
 $c = $ctz->fetch(PDO::FETCH_ASSOC);
 if (!$c) { header('Location: cotizaciones.php?error=Cotizacion no encontrada'); exit; }
 
-$its = $db->prepare("SELECT ci.*, p.codigo FROM cotizacion_items ci JOIN productos p ON p.id = ci.producto_id WHERE ci.cotizacion_id = ?");
+$its = $db->prepare("SELECT ci.*, p.codigo, p.nombre as producto_nombre FROM detalle_cotizaciones ci JOIN productos p ON p.id = ci.producto_id WHERE ci.cotizacion_id = ?");
 $its->execute([$id]);
 $items = $its->fetchAll(PDO::FETCH_ASSOC);
 
@@ -25,7 +25,8 @@ $items = $its->fetchAll(PDO::FETCH_ASSOC);
 <body>
 <form id="convertForm" method="POST" action="ventas.php">
   <input type="hidden" name="action" value="realizar_venta">
-  <input type="hidden" name="tienda_id" value="<?php echo (int)$c['tienda_id']; ?>">
+  <!-- Tienda debe ser seleccionada manualmente ya que las cotizaciones no tienen tienda_id -->
+  <input type="hidden" name="tienda_id" value="1">
   <input type="hidden" name="desde_cotizacion_id" value="<?php echo (int)$c['id']; ?>">
   <?php foreach ($items as $it): ?>
     <input type="hidden" name="productos[]" value="<?php echo (int)$it['producto_id']; ?>">

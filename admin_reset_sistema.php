@@ -136,8 +136,8 @@ require_once 'includes/layout_header.php';
 
                     <hr class="my-4">
 
-                    <div class="card border-dark">
-                        <div class="card-header bg-dark text-white">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
                             <h5 class="mb-0">Ejecutar Limpieza del Sistema</h5>
                         </div>
                         <div class="card-body">

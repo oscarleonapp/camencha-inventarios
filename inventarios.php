@@ -4,6 +4,7 @@ require_once 'includes/auth.php';
 require_once 'config/database.php';
 require_once 'includes/config_functions.php';
 require_once 'includes/csrf_protection.php';
+require_once 'includes/tienda_security.php';
 
 verificarLogin();
 verificarPermiso('inventarios_ver');
@@ -20,6 +21,14 @@ if ($_POST && isset($_POST['action'])) {
         $producto_id = $_POST['producto_id'];
         $nueva_cantidad = (int)$_POST['nueva_cantidad']; // cantidad disponible deseada
         $usuario_id = $_SESSION['usuario_id'];
+        
+        // Validar que el usuario tiene acceso a esta tienda
+        try {
+            validarAccesoTienda($db, $usuario_id, $tienda_id, 'ajustar inventario');
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+            goto skip_process;
+        }
         
         // Tomamos cantidad total y en reparación para calcular la disponible actual
         $query_check = "SELECT cantidad, COALESCE(cantidad_reparacion, 0) AS cantidad_reparacion FROM inventarios WHERE tienda_id = ? AND producto_id = ?";
@@ -42,7 +51,7 @@ if ($_POST && isset($_POST['action'])) {
             $stmt_update->execute([$nuevo_total, $tienda_id, $producto_id]);
             
             if ($cantidad_movimiento > 0) {
-                $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) 
+                $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) 
                                     VALUES (?, ?, ?, ?, 'Ajuste de inventario', ?)";
                 $stmt_movimiento = $db->prepare($query_movimiento);
                 $stmt_movimiento->execute([$tipo_movimiento, $producto_id, $tienda_id, $cantidad_movimiento, $usuario_id]);
@@ -54,7 +63,7 @@ if ($_POST && isset($_POST['action'])) {
             $stmt_insert->execute([$tienda_id, $producto_id, $nueva_cantidad]);
             
             if ($nueva_cantidad > 0) {
-                $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) 
+                $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) 
                                     VALUES ('entrada', ?, ?, ?, 'Inventario inicial', ?)";
                 $stmt_movimiento = $db->prepare($query_movimiento);
                 $stmt_movimiento->execute([$producto_id, $tienda_id, $nueva_cantidad, $usuario_id]);
@@ -63,6 +72,19 @@ if ($_POST && isset($_POST['action'])) {
         
         $success = "Inventario ajustado exitosamente";
     }
+}
+
+skip_process:
+
+// Obtener filtros de tienda para el usuario actual
+$usuario_id = $_SESSION['usuario_id'];
+$filtro_tiendas = getFiltroTiendas($db, $usuario_id, 'i.tienda_id');
+
+$where_adicional = '';
+$params_inventarios = [];
+if (!empty($filtro_tiendas['where'])) {
+    $where_adicional = ' AND ' . $filtro_tiendas['where'];
+    $params_inventarios = $filtro_tiendas['params'];
 }
 
 $query_inventarios = "SELECT i.*, t.nombre as tienda_nombre, p.codigo, p.nombre as producto_nombre, p.tipo,
@@ -74,16 +96,14 @@ $query_inventarios = "SELECT i.*, t.nombre as tienda_nombre, p.codigo, p.nombre 
                       FROM inventarios i 
                       JOIN tiendas t ON i.tienda_id = t.id 
                       JOIN productos p ON i.producto_id = p.id 
-                      WHERE t.activo = 1 AND p.activo = 1 
+                      WHERE t.activo = 1 AND p.activo = 1 $where_adicional
                       ORDER BY t.nombre, p.nombre";
 $stmt_inventarios = $db->prepare($query_inventarios);
-$stmt_inventarios->execute();
+$stmt_inventarios->execute($params_inventarios);
 $inventarios = $stmt_inventarios->fetchAll(PDO::FETCH_ASSOC);
 
-$query_tiendas = "SELECT * FROM tiendas WHERE activo = 1 ORDER BY nombre";
-$stmt_tiendas = $db->prepare($query_tiendas);
-$stmt_tiendas->execute();
-$tiendas = $stmt_tiendas->fetchAll(PDO::FETCH_ASSOC);
+// Solo mostrar tiendas asignadas al usuario
+$tiendas = getTiendasUsuarioCompleta($db, $usuario_id);
 
 $query_productos = "SELECT * FROM productos WHERE activo = 1 ORDER BY nombre";
 $stmt_productos = $db->prepare($query_productos);
@@ -93,9 +113,9 @@ $productos = $stmt_productos->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-boxes"></i> <span class="editable" data-label="inventarios_titulo">Control de Stock</span></h2>
-        <div class="btn-group">
+        <div class="btn-group rs-wrap-sm">
             <button class="btn btn-outline-primary" onclick="exportarInventario()">
                 <i class="fas fa-download"></i> Exportar
             </button>
@@ -174,9 +194,9 @@ include 'includes/layout_header.php';
                         <h5>Estado del Inventario por Tienda</h5>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
+                        <div class="table-responsive-md">
+                            <table class="table align-middle accessibility-fix">
+                                <thead class="table-light">
                                     <tr>
                                         <th>Tienda</th>
                                         <th>Código</th>
@@ -204,7 +224,8 @@ include 'includes/layout_header.php';
                                             <span class="fw-bold editable-stock" 
                                                   data-disponible="<?php echo $inventario['cantidad_disponible']; ?>"
                                                   data-reparacion="<?php echo (int)$inventario['cantidad_reparacion']; ?>"
-                                                  title="Click para editar">
+                                                  title="Click para editar"
+                                                 >
                                                 <?php echo $inventario['cantidad_disponible']; ?>
                                             </span>
                                             <button class="btn btn-sm btn-link text-decoration-none edit-stock-btn" title="Editar">
@@ -220,7 +241,7 @@ include 'includes/layout_header.php';
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             <?php if ($inventario['reparaciones_activas'] > 0): ?>
-                                                <br><small class="text-muted"><?php echo $inventario['reparaciones_activas']; ?> activas</small>
+                                                <br><small class="text-muted" style="color: #6c757d !important;"><?php echo $inventario['reparaciones_activas']; ?> activas</small>
                                             <?php endif; ?>
                                         </td>
                                         <td>

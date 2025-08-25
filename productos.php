@@ -37,6 +37,39 @@ if ($_POST && isset($_POST['action'])) {
         $precio_compra = (float)($_POST['precio_compra'] ?? 0);
         $tipo = $_POST['tipo'] ?? 'elemento';
         $proveedor_id = isset($_POST['proveedor_id']) && $_POST['proveedor_id'] !== '' ? (int)$_POST['proveedor_id'] : null;
+        
+        // Manejar actualización de imagen
+        $imagen_nombre = null;
+        $actualizar_imagen = false;
+        if (isset($_FILES['imagen_producto']) && $_FILES['imagen_producto']['error'] === UPLOAD_ERR_OK) {
+            $archivo = $_FILES['imagen_producto'];
+            $tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif'];
+            $tamaño_maximo = 5 * 1024 * 1024; // 5MB
+            
+            if (!in_array($archivo['type'], $tipos_permitidos)) {
+                $error = "Tipo de archivo no permitido. Solo se aceptan JPG, PNG y GIF.";
+            } elseif ($archivo['size'] > $tamaño_maximo) {
+                $error = "El archivo es demasiado grande. Máximo 5MB permitido.";
+            } else {
+                $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+                $imagen_nombre = $codigo . '_' . time() . '_' . rand(1000, 9999) . '.' . $extension;
+                $ruta_destino = 'uploads/productos/' . $imagen_nombre;
+                
+                if (move_uploaded_file($archivo['tmp_name'], $ruta_destino)) {
+                    $actualizar_imagen = true;
+                    
+                    // Eliminar imagen anterior si existe
+                    $stmtImg = $db->prepare("SELECT imagen FROM productos WHERE id = ?");
+                    $stmtImg->execute([$id]);
+                    $imagen_anterior = $stmtImg->fetchColumn();
+                    if ($imagen_anterior && file_exists('uploads/productos/' . $imagen_anterior)) {
+                        unlink('uploads/productos/' . $imagen_anterior);
+                    }
+                } else {
+                    $error = "Error al subir la imagen. Inténtalo de nuevo.";
+                }
+            }
+        }
         if ($id <= 0 || $codigo === '' || $nombre === '') {
             $error = 'Datos inválidos para actualizar el producto';
         } else {
@@ -61,8 +94,14 @@ if ($_POST && isset($_POST['action'])) {
                 $stmtOld->execute([$id]);
                 $old = $stmtOld->fetch(PDO::FETCH_ASSOC);
                 
-                $stmtUp = $db->prepare("UPDATE productos SET codigo = ?, nombre = ?, descripcion = ?, precio_venta = ?, precio_compra = ?, tipo = ?, proveedor_id = ? WHERE id = ?");
-                $stmtUp->execute([$codigo, $nombre, $descripcion, $precio_venta, $precio_compra, $tipo, $proveedor_id, $id]);
+                // Actualizar con o sin imagen
+                if ($actualizar_imagen) {
+                    $stmtUp = $db->prepare("UPDATE productos SET codigo = ?, nombre = ?, descripcion = ?, imagen = ?, precio_venta = ?, precio_compra = ?, tipo = ?, proveedor_id = ? WHERE id = ?");
+                    $stmtUp->execute([$codigo, $nombre, $descripcion, $imagen_nombre, $precio_venta, $precio_compra, $tipo, $proveedor_id, $id]);
+                } else {
+                    $stmtUp = $db->prepare("UPDATE productos SET codigo = ?, nombre = ?, descripcion = ?, precio_venta = ?, precio_compra = ?, tipo = ?, proveedor_id = ? WHERE id = ?");
+                    $stmtUp->execute([$codigo, $nombre, $descripcion, $precio_venta, $precio_compra, $tipo, $proveedor_id, $id]);
+                }
                 
                 $success = 'Producto actualizado correctamente';
                 // Log de cambios antes/después
@@ -183,6 +222,28 @@ if ($_POST && isset($_POST['action'])) {
         $precio_compra = $_POST['precio_compra'];
         $proveedor_id = isset($_POST['proveedor_id']) && $_POST['proveedor_id'] !== '' ? (int)$_POST['proveedor_id'] : null;
         
+        // Manejar subida de imagen
+        $imagen_nombre = null;
+        if (isset($_FILES['imagen_producto']) && $_FILES['imagen_producto']['error'] === UPLOAD_ERR_OK) {
+            $archivo = $_FILES['imagen_producto'];
+            $tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif'];
+            $tamaño_maximo = 5 * 1024 * 1024; // 5MB
+            
+            if (!in_array($archivo['type'], $tipos_permitidos)) {
+                $error = "Tipo de archivo no permitido. Solo se aceptan JPG, PNG y GIF.";
+            } elseif ($archivo['size'] > $tamaño_maximo) {
+                $error = "El archivo es demasiado grande. Máximo 5MB permitido.";
+            } else {
+                $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+                $imagen_nombre = $codigo . '_' . time() . '_' . rand(1000, 9999) . '.' . $extension;
+                $ruta_destino = 'uploads/productos/' . $imagen_nombre;
+                
+                if (!move_uploaded_file($archivo['tmp_name'], $ruta_destino)) {
+                    $error = "Error al subir la imagen. Inténtalo de nuevo.";
+                }
+            }
+        }
+        
         // Para conjuntos, permitir proveedor nulo si hay múltiples proveedores
         $permitir_proveedor_nulo = ($tipo === 'conjunto');
         
@@ -211,9 +272,9 @@ if ($_POST && isset($_POST['action'])) {
             
             try {
                 // Forzar producto activo al crear para que aparezca en el listado
-                $query = "INSERT INTO productos (codigo, nombre, descripcion, precio_venta, precio_compra, tipo, proveedor_id, activo) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
+                $query = "INSERT INTO productos (codigo, nombre, descripcion, imagen, precio_venta, precio_compra, tipo, proveedor_id, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)";
                 $stmt = $db->prepare($query);
-                $stmt->execute([$codigo, $nombre, $descripcion, $precio_venta, $precio_compra, $tipo, $proveedor_id]);
+                $stmt->execute([$codigo, $nombre, $descripcion, $imagen_nombre, $precio_venta, $precio_compra, $tipo, $proveedor_id]);
                 $producto_id = $db->lastInsertId();
                 
                 // Si es un conjunto, procesar los componentes
@@ -222,6 +283,7 @@ if ($_POST && isset($_POST['action'])) {
                     $componentes_cantidades = $_POST['componentes_cantidades'] ?? [];
                     
                     $componentes_agregados = 0;
+                    $elementos_procesados = []; // Array para rastrear elementos ya agregados
                     
                     for ($i = 0; $i < count($componentes_elementos); $i++) {
                         $elemento_id = $componentes_elementos[$i];
@@ -229,6 +291,11 @@ if ($_POST && isset($_POST['action'])) {
                         
                         // Solo procesar si se seleccionó un elemento y la cantidad es válida
                         if (!empty($elemento_id) && $cantidad > 0) {
+                            // Verificar si ya agregamos este elemento
+                            if (in_array($elemento_id, $elementos_procesados)) {
+                                continue; // Saltar elemento duplicado
+                            }
+                            
                             // Verificar que el elemento existe
                             $verify_query = "SELECT id FROM productos WHERE id = ? AND tipo = 'elemento' AND activo = 1";
                             $verify_stmt = $db->prepare($verify_query);
@@ -236,10 +303,11 @@ if ($_POST && isset($_POST['action'])) {
                             
                             if ($verify_stmt->rowCount() > 0) {
                                 // Agregar componente
-                                $comp_query = "INSERT INTO producto_componentes (producto_conjunto_id, producto_elemento_id, cantidad) VALUES (?, ?, ?)";
+                                $comp_query = "INSERT INTO producto_componentes (producto_conjunto_id, producto_elemento_id, cantidad_requerida) VALUES (?, ?, ?)";
                                 $comp_stmt = $db->prepare($comp_query);
                                 $comp_stmt->execute([$producto_id, $elemento_id, $cantidad]);
                                 $componentes_agregados++;
+                                $elementos_procesados[] = $elemento_id; // Marcar como procesado
                             }
                         }
                     }
@@ -278,11 +346,20 @@ if ($_POST && isset($_POST['action'])) {
         $producto_elemento_id = $_POST['producto_elemento_id'];
         $cantidad = $_POST['cantidad'];
         
-        $query = "INSERT INTO producto_componentes (producto_conjunto_id, producto_elemento_id, cantidad) VALUES (?, ?, ?)";
-        $stmt = $db->prepare($query);
-        $stmt->execute([$producto_conjunto_id, $producto_elemento_id, $cantidad]);
+        // Verificar si ya existe este componente en el conjunto
+        $check_query = "SELECT id FROM producto_componentes WHERE producto_conjunto_id = ? AND producto_elemento_id = ?";
+        $check_stmt = $db->prepare($check_query);
+        $check_stmt->execute([$producto_conjunto_id, $producto_elemento_id]);
         
-        $success = "Componente agregado exitosamente";
+        if ($check_stmt->rowCount() > 0) {
+            $error = "Este elemento ya está agregado al conjunto. No se pueden duplicar componentes.";
+        } else {
+            $query = "INSERT INTO producto_componentes (producto_conjunto_id, producto_elemento_id, cantidad_requerida) VALUES (?, ?, ?)";
+            $stmt = $db->prepare($query);
+            $stmt->execute([$producto_conjunto_id, $producto_elemento_id, $cantidad]);
+            
+            $success = "Componente agregado exitosamente";
+        }
     }
 }
 
@@ -376,10 +453,10 @@ $proveedores = $stmt_proveedores->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-box"></i> <span class="editable" data-label="productos_titulo">Gestión de Productos</span></h2>
         <?php if (tienePermiso('productos_crear', 'crear')): ?>
-        <div class="btn-group">
+        <div class="btn-group rs-wrap-sm">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTipoProducto">
                 <i class="fas fa-plus"></i> Nuevo Producto
             </button>
@@ -408,9 +485,9 @@ include 'includes/layout_header.php';
         
         
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 rs-wrap-sm">
                 <h5 class="mb-0"><i class="fas fa-list"></i> Lista de Productos</h5>
-                <form class="d-flex gap-2 flex-wrap" method="GET" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
+                <form class="d-flex gap-2 flex-wrap rs-wrap-sm" method="GET" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
                     <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar código o nombre" value="<?php echo htmlspecialchars($q); ?>">
                     <select name="tipo" class="form-select form-select-sm">
                         <option value="">Todos los tipos</option>
@@ -485,11 +562,12 @@ include 'includes/layout_header.php';
                                 </button>
                             </form>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table align-middle">
-                                <thead>
+                        <div class="table-responsive-md">
+                            <table class="table align-middle productos-table accessibility-fix">
+                                <thead class="thead-titulos">
                                     <tr>
                                         <th style="width:32px;"><input type="checkbox" id="selectAllProductos"></th>
+                                        <th>Imagen</th>
                                         <th>Código</th>
                                         <th>Nombre</th>
                                         <th>Tipo</th>
@@ -503,27 +581,62 @@ include 'includes/layout_header.php';
                                 <tbody>
                                     <?php if (count($productos) === 0): ?>
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted">No se encontraron productos con los filtros aplicados</td>
+                                        <td colspan="10" class="text-center text-muted" style="color: #6c757d !important;">
+                                            <i class="fas fa-info-circle"></i> No se encontraron productos con los filtros aplicados
+                                        </td>
                                     </tr>
                                     <?php endif; ?>
                                     <?php foreach ($productos as $producto): ?>
                                     <tr>
-                                        <td>
+                                        <td style="color: #2d3748 !important;">
                                             <input type="checkbox" class="prod-checkbox" value="<?php echo $producto['id']; ?>">
                                         </td>
-                                        <td><?php echo $producto['codigo']; ?></td>
-                                        <td><?php echo $producto['nombre']; ?></td>
-                                        <td>
+                                        <td style="color: #2d3748 !important; width: 80px;">
+                                            <?php if (!empty($producto['imagen'])): ?>
+                                                <img src="uploads/productos/<?php echo htmlspecialchars($producto['imagen']); ?>" 
+                                                     alt="<?php echo htmlspecialchars($producto['nombre']); ?>" 
+                                                     class="img-thumbnail" 
+                                                     style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;" 
+                                                     onclick="mostrarImagenModal('uploads/productos/<?php echo htmlspecialchars($producto['imagen']); ?>', '<?php echo htmlspecialchars($producto['nombre']); ?>')">
+                                            <?php else: ?>
+                                                <div class="d-flex align-items-center justify-content-center bg-light rounded" style="width: 60px; height: 60px;">
+                                                    <i class="fas fa-image text-muted"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="color: #2d3748 !important;">
+                                            <strong style="color: #2d3748 !important;"><?php echo htmlspecialchars($producto['codigo']); ?></strong>
+                                        </td>
+                                        <td style="color: #2d3748 !important;">
+                                            <?php echo htmlspecialchars($producto['nombre']); ?>
+                                        </td>
+                                        <td style="color: #2d3748 !important;">
                                             <span class="badge bg-<?php echo $producto['tipo'] == 'elemento' ? 'primary' : 'success'; ?>">
-                                                <?php echo ucfirst($producto['tipo']); ?>
+                                                <i class="fas fa-<?php echo $producto['tipo'] == 'elemento' ? 'cube' : 'cubes'; ?>"></i>
+                                                <?php echo $producto['tipo'] == 'elemento' ? 'Elemento' : 'Conjunto'; ?>
                                             </span>
                                         </td>
-                                        <td><?php echo formatearMoneda($producto['precio_venta']); ?></td>
-                                        <td><?php echo formatearMoneda($producto['precio_compra']); ?></td>
-                                        <td>
-                                            <?php echo htmlspecialchars($producto['proveedor_nombre'] ?? '—'); ?>
+                                        <td style="color: #2d3748 !important;">
+                                            <span class="text-success" style="color: #22543d !important; font-weight: 600;">
+                                                <?php echo formatearMoneda($producto['precio_venta']); ?>
+                                            </span>
                                         </td>
-                                        <td>
+                                        <td style="color: #2d3748 !important;">
+                                            <span class="text-muted" style="color: #6c757d !important;">
+                                                <?php echo formatearMoneda($producto['precio_compra']); ?>
+                                            </span>
+                                        </td>
+                                        <td style="color: #2d3748 !important;">
+                                            <?php if (!empty($producto['proveedor_nombre'])): ?>
+                                                <small style="color: #2d3748 !important;">
+                                                    <i class="fas fa-truck" style="color: #4c51bf !important;"></i>
+                                                    <?php echo htmlspecialchars($producto['proveedor_nombre']); ?>
+                                                </small>
+                                            <?php else: ?>
+                                                <small class="text-muted" style="color: #6c757d !important;">—</small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="color: #2d3748 !important;">
                                             <?php if (!empty($producto['qr_code'])): ?>
                                                 <span class="badge bg-success">
                                                     <i class="fas fa-qrcode"></i> Generado
@@ -554,13 +667,14 @@ include 'includes/layout_header.php';
                                                 <?php endif; ?>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td style="color: #2d3748 !important;">
                                             <div class="btn-group btn-group-sm">
                                                 <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEditarProducto"
                                                     data-id="<?php echo $producto['id']; ?>"
                                                     data-codigo="<?php echo htmlspecialchars($producto['codigo']); ?>"
                                                     data-nombre="<?php echo htmlspecialchars($producto['nombre']); ?>"
                                                     data-descripcion="<?php echo htmlspecialchars($producto['descripcion'] ?? ''); ?>"
+                                                    data-imagen="<?php echo htmlspecialchars($producto['imagen'] ?? ''); ?>"
                                                     data-precioventa="<?php echo $producto['precio_venta']; ?>"
                                                     data-preciocompra="<?php echo $producto['precio_compra']; ?>"
                                                     data-tipo="<?php echo $producto['tipo']; ?>"
@@ -660,7 +774,7 @@ include 'includes/layout_header.php';
 <div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <form method="POST" id="formEditarProducto">
+      <form method="POST" id="formEditarProducto" enctype="multipart/form-data">
         <input type="hidden" name="action" value="editar_producto">
         <input type="hidden" name="id" id="editarProductoId">
         <?php echo campoCSRF(); ?>
@@ -686,6 +800,26 @@ include 'includes/layout_header.php';
           <div class="mb-3">
             <label class="form-label">Descripción</label>
             <textarea class="form-control" name="descripcion" id="editarDescripcion" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="fas fa-image text-muted me-1"></i>
+              Imagen del Producto
+            </label>
+            <div id="imagenActualContainer" class="mb-2 d-none">
+              <div class="d-flex align-items-center gap-2">
+                <img id="imagenActual" src="" alt="" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                <span class="text-muted small">Imagen actual</span>
+              </div>
+            </div>
+            <input type="file" class="form-control" name="imagen_producto" accept="image/*" id="editarImagenProducto">
+            <div class="form-text">
+              <i class="fas fa-info-circle"></i> 
+              Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB. Deja vacío para mantener la imagen actual.
+            </div>
+            <div id="editarPreviewImagen" class="mt-2 d-none">
+              <img id="editarImagenPreview" src="" alt="Vista previa" class="img-thumbnail" style="max-height: 200px;">
+            </div>
           </div>
           <div class="row">
             <div class="col-md-6">
@@ -742,7 +876,7 @@ include 'includes/layout_header.php';
 <div class="modal fade" id="modalCrearProducto" tabindex="-1" aria-labelledby="modalCrearProductoLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" id="formCrearProducto">
+            <form method="POST" id="formCrearProducto" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="crear_producto">
                 <input type="hidden" name="tipo" id="tipoProductoSeleccionado">
                 <?php echo campoCSRF(); ?>
@@ -775,13 +909,29 @@ include 'includes/layout_header.php';
                         </div>
                     </div>
                     
-                    <div class="mb-3">
+                    <!-- Campo descripción oculto para elementos individuales -->
+                    <div class="mb-3" id="campoDescripcion">
                         <label class="form-label">
                             <i class="fas fa-align-left text-muted me-1"></i>
                             Descripción
                         </label>
                         <textarea class="form-control" name="descripcion" rows="3" 
                                   placeholder="Descripción detallada del producto (opcional)"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-image text-muted me-1"></i>
+                            Imagen del Producto
+                        </label>
+                        <input type="file" class="form-control" name="imagen_producto" accept="image/*" id="imagenProducto">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle"></i> 
+                            Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB.
+                        </div>
+                        <div id="previewImagen" class="mt-2 d-none">
+                            <img id="imagenPreview" src="" alt="Vista previa" class="img-thumbnail" style="max-height: 200px;">
+                        </div>
                     </div>
                     
                     <div class="row">
@@ -833,7 +983,7 @@ include 'includes/layout_header.php';
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">
-                                    <i class="fas fa-dollar-sign text-muted me-1"></i>
+                                    <i class="fas fa-coins text-muted me-1"></i>
                                     Precio de Compra
                                 </label>
                                 <div class="input-group">
@@ -1025,6 +1175,21 @@ include 'includes/layout_header.php';
     </div>
 </div>
 
+<!-- Modal para ver imagen completa -->
+<div class="modal fade" id="modalImagenCompleta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imagenModalTitle">Imagen del Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="imagenModalImg" src="" alt="" class="img-fluid" style="max-height: 500px;">
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .card-hover {
     transition: all 0.3s ease;
@@ -1067,6 +1232,9 @@ function abrirModalProducto(tipo) {
         info.className = 'alert alert-primary';
         seccionComponentes.classList.add('d-none');
         
+        // Ocultar campo descripción para elementos individuales
+        document.getElementById('campoDescripcion').style.display = 'none';
+        
         // Mostrar texto para elementos
         mostrarTextoProveedor('elemento');
         
@@ -1081,6 +1249,9 @@ function abrirModalProducto(tipo) {
         `;
         info.className = 'alert alert-success';
         seccionComponentes.classList.remove('d-none');
+        
+        // Mostrar campo descripción para conjuntos
+        document.getElementById('campoDescripcion').style.display = 'block';
         
         // Mostrar texto para conjuntos y resetear componentes
         mostrarTextoProveedor('conjunto');
@@ -1175,6 +1346,22 @@ if (modalEditarProducto) {
     document.getElementById('editarTipo').value = btn.getAttribute('data-tipo') || 'elemento';
     const prov = btn.getAttribute('data-proveedor') || '';
     document.getElementById('editarProveedor').value = prov;
+    
+    // Manejar imagen actual
+    const imagen = btn.getAttribute('data-imagen') || '';
+    const imagenContainer = document.getElementById('imagenActualContainer');
+    const imagenActual = document.getElementById('imagenActual');
+    if (imagen) {
+      imagenActual.src = 'uploads/productos/' + imagen;
+      imagenActual.alt = btn.getAttribute('data-nombre') || '';
+      imagenContainer.classList.remove('d-none');
+    } else {
+      imagenContainer.classList.add('d-none');
+    }
+    
+    // Limpiar preview de nueva imagen
+    document.getElementById('editarPreviewImagen').classList.add('d-none');
+    document.getElementById('editarImagenProducto').value = '';
   });
 
   // Validación simple precios
@@ -1480,6 +1667,84 @@ function actualizarProveedorConjunto() {
         document.getElementById('listaProveedores').textContent = listaProveedoresNombres;
     }
 }
+
+// ===== FUNCIONES DE GESTIÓN DE IMÁGENES =====
+function mostrarImagenModal(src, nombre) {
+    document.getElementById('imagenModalImg').src = src;
+    document.getElementById('imagenModalImg').alt = nombre;
+    document.getElementById('imagenModalTitle').textContent = 'Imagen: ' + nombre;
+    new bootstrap.Modal(document.getElementById('modalImagenCompleta')).show();
+}
+
+// Vista previa de imagen al seleccionar archivo
+document.getElementById('imagenProducto').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('previewImagen');
+    const img = document.getElementById('imagenPreview');
+    
+    if (file) {
+        // Validar tamaño
+        if (file.size > 5 * 1024 * 1024) {
+            showError('El archivo es demasiado grande. Máximo 5MB permitido.');
+            e.target.value = '';
+            preview.classList.add('d-none');
+            return;
+        }
+        
+        // Validar tipo
+        if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
+            showError('Tipo de archivo no permitido. Solo se aceptan JPG, PNG y GIF.');
+            e.target.value = '';
+            preview.classList.add('d-none');
+            return;
+        }
+        
+        // Mostrar vista previa
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            preview.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.classList.add('d-none');
+    }
+});
+
+// Vista previa de imagen en formulario de edición
+document.getElementById('editarImagenProducto').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('editarPreviewImagen');
+    const img = document.getElementById('editarImagenPreview');
+    
+    if (file) {
+        // Validar tamaño
+        if (file.size > 5 * 1024 * 1024) {
+            showError('El archivo es demasiado grande. Máximo 5MB permitido.');
+            e.target.value = '';
+            preview.classList.add('d-none');
+            return;
+        }
+        
+        // Validar tipo
+        if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
+            showError('Tipo de archivo no permitido. Solo se aceptan JPG, PNG y GIF.');
+            e.target.value = '';
+            preview.classList.add('d-none');
+            return;
+        }
+        
+        // Mostrar vista previa
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            preview.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.classList.add('d-none');
+    }
+});
 </script>
 
 <?php include 'includes/layout_footer.php'; ?>

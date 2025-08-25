@@ -70,7 +70,7 @@ $datos_nuevos = $log['datos_nuevos'] ? json_decode($log['datos_nuevos'], true) :
                         'info' => 'bg-primary',
                         'warning' => 'bg-warning text-dark',
                         'error' => 'bg-danger',
-                        'critical' => 'bg-dark'
+                        'critical' => 'bg-danger text-white'
                     ];
                     ?>
                     <span class="badge <?php echo $nivel_class[$log['nivel']] ?? 'bg-secondary'; ?>">

@@ -153,6 +153,12 @@ function obtenerMenuModulos() {
             'icono' => 'fas fa-shopping-cart',
             'submenu' => [
                 [
+                    'nombre' => 'POS - Punto de Venta',
+                    'url' => 'pos.php',
+                    'icono' => 'fas fa-credit-card',
+                    'permiso' => 'ventas_crear'
+                ],
+                [
                     'nombre' => 'Realizar Ventas',
                     'url' => 'ventas.php',
                     'icono' => 'fas fa-cash-register',
@@ -190,16 +196,67 @@ function obtenerMenuModulos() {
                     'permiso' => 'tiendas_ver'
                 ],
                 [
-                    'nombre' => 'Nuevo Encargado',
-                    'url' => 'nuevo_encargado.php',
-                    'icono' => 'fas fa-user-plus',
-                    'permiso' => 'tiendas_crear'
-                ],
-                [
                     'nombre' => 'Lista de Encargados',
                     'url' => 'lista_encargados.php',
                     'icono' => 'fas fa-users',
                     'permiso' => 'tiendas_ver'
+                ]
+            ]
+        ],
+        [
+            'id' => 'cotizaciones',
+            'nombre' => 'Cotizaciones',
+            'url' => 'cotizaciones.php',
+            'icono' => 'fas fa-file-signature',
+            'permiso' => 'cotizaciones_ver'
+        ],
+        [
+            'id' => 'vendedores',
+            'nombre' => 'Vendedores',
+            'icono' => 'fas fa-user-tie',
+            'submenu' => [
+                [
+                    'nombre' => 'Dashboard Vendedor',
+                    'url' => 'vendedor_dashboard.php',
+                    'icono' => 'fas fa-chart-line',
+                    'permiso' => 'ventas_crear'
+                ],
+                [
+                    'nombre' => 'Aprobar Ventas',
+                    'url' => 'aprobacion_ventas_vendedor.php',
+                    'icono' => 'fas fa-clipboard-check',
+                    'permiso' => 'ventas_ver'
+                ],
+                [
+                    'nombre' => 'Ranking Vendedores',
+                    'url' => 'ranking_vendedores.php',
+                    'icono' => 'fas fa-trophy',
+                    'permiso' => 'ventas_ver'
+                ]
+            ]
+        ],
+        [
+            'id' => 'control_ingresos',
+            'nombre' => 'Control Ingresos',
+            'icono' => 'fas fa-money-check-alt',
+            'submenu' => [
+                [
+                    'nombre' => 'Reporte Ingresos Diario',
+                    'url' => 'reporte_ingresos_diario.php',
+                    'icono' => 'fas fa-cash-register',
+                    'permiso' => 'ventas_crear'
+                ],
+                [
+                    'nombre' => 'Dashboard Gerencial',
+                    'url' => 'gerente_dashboard.php',
+                    'icono' => 'fas fa-building',
+                    'permiso' => 'ventas_ver'
+                ],
+                [
+                    'nombre' => 'Reconciliación Contabilidad',
+                    'url' => 'contabilidad_reconciliacion.php',
+                    'icono' => 'fas fa-calculator',
+                    'permiso' => 'config_sistema'
                 ]
             ]
         ],
@@ -251,6 +308,55 @@ function obtenerMenuModulos() {
             'permiso' => 'logs_sistema'
         ],
         [
+            'id' => 'manual',
+            'nombre' => 'Manual de Uso',
+            'icono' => 'fas fa-book-open',
+            'submenu' => [
+                [
+                    'nombre' => 'Guía Completa',
+                    'url' => 'manual.php',
+                    'icono' => 'fas fa-book',
+                    'permiso' => 'dashboard'
+                ],
+                [
+                    'nombre' => 'Inicio Rápido',
+                    'url' => 'manual.php?seccion=inicio-rapido',
+                    'icono' => 'fas fa-rocket',
+                    'permiso' => 'dashboard'
+                ],
+                [
+                    'nombre' => 'Gestión de Productos',
+                    'url' => 'manual.php?seccion=productos',
+                    'icono' => 'fas fa-boxes',
+                    'permiso' => 'productos_ver'
+                ],
+                [
+                    'nombre' => 'Control de Inventarios',
+                    'url' => 'manual.php?seccion=inventarios',
+                    'icono' => 'fas fa-warehouse',
+                    'permiso' => 'inventarios_ver'
+                ],
+                [
+                    'nombre' => 'Punto de Venta (POS)',
+                    'url' => 'manual.php?seccion=pos',
+                    'icono' => 'fas fa-cash-register',
+                    'permiso' => 'ventas_crear'
+                ],
+                [
+                    'nombre' => 'Escáner QR',
+                    'url' => 'manual.php?seccion=qr',
+                    'icono' => 'fas fa-qrcode',
+                    'permiso' => 'ventas_crear'
+                ],
+                [
+                    'nombre' => 'Preguntas Frecuentes',
+                    'url' => 'manual.php?seccion=faq',
+                    'icono' => 'fas fa-question-circle',
+                    'permiso' => 'dashboard'
+                ]
+            ]
+        ],
+        [
             'id' => 'administracion',
             'nombre' => 'Administración',
             'icono' => 'fas fa-cogs',
@@ -277,6 +383,12 @@ function obtenerMenuModulos() {
                     'nombre' => 'Personalización Visual',
                     'url' => 'personalizacion_visual.php',
                     'icono' => 'fas fa-palette',
+                    'permiso' => 'config_sistema'
+                ],
+                [
+                    'nombre' => 'Demo Diseño Moderno',
+                    'url' => 'demo-visual.php',
+                    'icono' => 'fas fa-eye',
                     'permiso' => 'config_sistema'
                 ]
             ]

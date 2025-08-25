@@ -93,7 +93,7 @@ $css_adicional = ['assets/css/roles.css'];
 include 'includes/layout_header.php';
 ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-user-shield"></i> <span class="editable" data-label="roles_titulo">Gestión de Roles y Permisos</span></h2>
         <button class="btn btn-outline-info" onclick="mostrarAyuda()">
             <i class="fas fa-question-circle"></i> Ayuda

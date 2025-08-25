@@ -11,17 +11,16 @@ if ($id<=0) { die('Cotización inválida'); }
 $database = new Database();
 $db = $database->getConnection();
 
-$stmt = $db->prepare("SELECT c.*, t.nombre AS tienda_nombre, u.nombre AS usuario_nombre
+$stmt = $db->prepare("SELECT c.*, u.nombre AS usuario_nombre
                       FROM cotizaciones c
-                      JOIN tiendas t ON c.tienda_id = t.id
                       JOIN usuarios u ON c.usuario_id = u.id
                       WHERE c.id = ?");
 $stmt->execute([$id]);
 $ctz = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$ctz) { die('No encontrada'); }
 
-$sti = $db->prepare("SELECT ci.*, p.codigo
-                     FROM cotizacion_items ci
+$sti = $db->prepare("SELECT ci.*, p.codigo, p.nombre as producto_nombre
+                     FROM detalle_cotizaciones ci
                      JOIN productos p ON p.id = ci.producto_id
                      WHERE ci.cotizacion_id = ?");
 $sti->execute([$id]);
@@ -37,11 +36,19 @@ $items = $sti->fetchAll(PDO::FETCH_ASSOC);
   <style>
     @media print { .no-print { display:none; } body { -webkit-print-color-adjust: exact; } }
     .table th, .table td { vertical-align: middle; }
+    /* Responsive helpers for tablet */
+    @media (max-width: 1024px) {
+      .table-responsive-md { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .table-responsive-md > table { min-width: 900px; }
+      .table-responsive-md th, .table-responsive-md td { white-space: nowrap; }
+      /* Descripción con elipsis */
+      .table-responsive-md td:nth-child(2) { max-width: 420px; overflow: hidden; text-overflow: ellipsis; }
+    }
   </style>
   </head>
 <body class="p-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="m-0">Cotización <?php echo $ctz['numero'] ? '#'.htmlspecialchars($ctz['numero']) : '#'.$ctz['id']; ?></h3>
+    <h3 class="m-0">Cotización <?php echo $ctz['numero_cotizacion'] ? '#'.htmlspecialchars($ctz['numero_cotizacion']) : '#'.$ctz['id']; ?></h3>
     <div class="no-print d-flex gap-2">
       <form class="d-flex gap-2" onsubmit="return enviarEmail(event)">
         <input type="email" class="form-control" id="emailDestino" placeholder="Enviar a email">
@@ -52,8 +59,8 @@ $items = $sti->fetchAll(PDO::FETCH_ASSOC);
   </div>
   <div class="row mb-3">
     <div class="col">
-      <h6 class="text-muted">Empresa/Tienda</h6>
-      <div><strong><?php echo htmlspecialchars($ctz['tienda_nombre']); ?></strong></div>
+      <h6 class="text-muted">Empresa</h6>
+      <div><strong>Sistema de Inventarios</strong></div>
     </div>
     <div class="col">
       <h6 class="text-muted">Cliente</h6>
@@ -62,12 +69,12 @@ $items = $sti->fetchAll(PDO::FETCH_ASSOC);
     </div>
     <div class="col">
       <h6 class="text-muted">Datos</h6>
-      <div>Fecha: <?php echo date('d/m/Y H:i', strtotime($ctz['fecha'])); ?></div>
+      <div>Fecha: <?php echo date('d/m/Y', strtotime($ctz['fecha_cotizacion'])); ?></div>
       <div>Vendedor: <?php echo htmlspecialchars($ctz['usuario_nombre']); ?></div>
     </div>
   </div>
 
-  <div class="table-responsive">
+  <div class="table-responsive-md">
     <table class="table table-bordered">
       <thead class="table-light">
         <tr>
@@ -82,7 +89,7 @@ $items = $sti->fetchAll(PDO::FETCH_ASSOC);
         <?php foreach ($items as $it): ?>
         <tr>
           <td><?php echo htmlspecialchars($it['codigo']); ?></td>
-          <td><?php echo htmlspecialchars($it['descripcion']); ?></td>
+          <td><?php echo htmlspecialchars($it['producto_nombre']); ?></td>
           <td class="text-end"><?php echo (int)$it['cantidad']; ?></td>
           <td class="text-end"><?php echo number_format($it['precio_unitario'],2); ?></td>
           <td class="text-end"><?php echo number_format($it['subtotal'],2); ?></td>
@@ -122,9 +129,21 @@ $items = $sti->fetchAll(PDO::FETCH_ASSOC);
     const fd = new FormData();
     fd.append('csrf_token', '<?php require_once 'includes/csrf_protection.php'; echo generarTokenCSRF(); ?>');
     fd.append('tipo','ctz'); fd.append('id','<?php echo (int)$ctz['id']; ?>'); fd.append('para', email);
-    const res = await fetch('includes/send_email.php', { method:'POST', body: fd });
-    const json = await res.json();
-    if(json.success){ alert('Email enviado'); } else { alert('No se pudo enviar: '+(json.error||'')); }
+    try {
+      const res = await fetch('includes/send_email.php', { method:'POST', body: fd });
+      console.log('Response status:', res.status);
+      const text = await res.text();
+      console.log('Response text:', text);
+      const json = JSON.parse(text);
+      if(json.success){ 
+        alert('Email enviado correctamente a ' + email); 
+      } else { 
+        alert('No se pudo enviar: ' + (json.error || 'Error desconocido')); 
+      }
+    } catch(err) {
+      console.error('Error:', err);
+      alert('Error de comunicación: ' + err.message);
+    }
     return false;
   }
   </script>

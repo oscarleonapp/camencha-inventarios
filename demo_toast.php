@@ -8,7 +8,7 @@ require_once 'includes/layout_header.php';
 ?>
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-bell"></i> Demo Toast Notifications</h2>
         <button class="btn btn-outline-danger" onclick="clearAllToasts()">
             <i class="fas fa-times"></i> Limpiar Todos

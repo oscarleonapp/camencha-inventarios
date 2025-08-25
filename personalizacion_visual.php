@@ -114,11 +114,11 @@ function guardarColores($datos) {
         foreach ($colores as $color) {
             if (isset($datos[$color])) {
                 $stmt = $db->prepare("
-                    INSERT INTO configuraciones (categoria, clave, valor) 
-                    VALUES ('visual', ?, ?) 
+                    INSERT INTO configuraciones (clave, valor, descripcion, tipo) 
+                    VALUES (?, ?, ?, 'texto') 
                     ON DUPLICATE KEY UPDATE valor = VALUES(valor)
                 ");
-                $stmt->execute([$color, $datos[$color]]);
+                $stmt->execute([$color, $datos[$color], 'Color visual: ' . $color]);
             }
         }
         
@@ -146,11 +146,11 @@ function guardarBranding($datos, $archivos) {
         foreach ($textos as $campo) {
             if (isset($datos[$campo])) {
                 $stmt = $db->prepare("
-                    INSERT INTO configuraciones (categoria, clave, valor) 
-                    VALUES ('visual', ?, ?) 
+                    INSERT INTO configuraciones (clave, valor, descripcion, tipo) 
+                    VALUES (?, ?, ?, 'texto') 
                     ON DUPLICATE KEY UPDATE valor = VALUES(valor)
                 ");
-                $stmt->execute([$campo, $datos[$campo]]);
+                $stmt->execute([$campo, $datos[$campo], 'Configuración visual: ' . $campo]);
             }
         }
         
@@ -162,11 +162,11 @@ function guardarBranding($datos, $archivos) {
                 $resultado = procesarImagenBranding($archivos[$campo], $campo);
                 if ($resultado['success']) {
                     $stmt = $db->prepare("
-                        INSERT INTO configuraciones (categoria, clave, valor) 
-                        VALUES ('visual', ?, ?) 
+                        INSERT INTO configuraciones (clave, valor, descripcion, tipo) 
+                        VALUES (?, ?, ?, 'texto') 
                         ON DUPLICATE KEY UPDATE valor = VALUES(valor)
                     ");
-                    $stmt->execute([$campo, $resultado['ruta']]);
+                    $stmt->execute([$campo, $resultado['ruta'], 'Archivo branding: ' . $campo]);
                 }
             }
         }
@@ -230,11 +230,11 @@ function guardarTipografia($datos) {
         foreach ($campos as $campo) {
             if (isset($datos[$campo])) {
                 $stmt = $db->prepare("
-                    INSERT INTO configuraciones (categoria, clave, valor) 
-                    VALUES ('visual', ?, ?) 
+                    INSERT INTO configuraciones (clave, valor, descripcion, tipo) 
+                    VALUES (?, ?, ?, 'texto') 
                     ON DUPLICATE KEY UPDATE valor = VALUES(valor)
                 ");
-                $stmt->execute([$campo, $datos[$campo]]);
+                $stmt->execute([$campo, $datos[$campo], 'Configuración visual: ' . $campo]);
             }
         }
         
@@ -261,11 +261,11 @@ function guardarLayout($datos) {
         foreach ($campos as $campo) {
             if (isset($datos[$campo])) {
                 $stmt = $db->prepare("
-                    INSERT INTO configuraciones (categoria, clave, valor) 
-                    VALUES ('visual', ?, ?) 
+                    INSERT INTO configuraciones (clave, valor, descripcion, tipo) 
+                    VALUES (?, ?, ?, 'texto') 
                     ON DUPLICATE KEY UPDATE valor = VALUES(valor)
                 ");
-                $stmt->execute([$campo, $datos[$campo]]);
+                $stmt->execute([$campo, $datos[$campo], 'Configuración visual: ' . $campo]);
             }
         }
         
@@ -316,11 +316,11 @@ function importarTema($archivos) {
         
         foreach ($tema['configuracion'] as $clave => $valor) {
             $stmt = $db->prepare("
-                INSERT INTO configuraciones (categoria, clave, valor) 
-                VALUES ('visual', ?, ?) 
+                INSERT INTO configuraciones (clave, valor, descripcion, tipo) 
+                VALUES (?, ?, ?, 'texto') 
                 ON DUPLICATE KEY UPDATE valor = VALUES(valor)
             ");
-            $stmt->execute([$clave, $valor]);
+            $stmt->execute([$clave, $valor, 'Configuración importada: ' . $clave]);
         }
         
         $db->commit();
@@ -336,8 +336,18 @@ function resetearTema() {
     global $db;
     
     try {
-        $stmt = $db->prepare("DELETE FROM configuraciones WHERE categoria = 'visual'");
-        $stmt->execute();
+        // Eliminar configuraciones visuales por patrón de clave
+        $claves_visuales = [
+            'color_primario', 'color_secundario', 'color_exito', 'color_peligro',
+            'color_advertencia', 'color_info', 'color_sidebar', 'color_navbar',
+            'color_texto', 'color_fondo', 'nombre_empresa', 'eslogan_empresa',
+            'logo_principal', 'logo_pequeno', 'favicon'
+        ];
+        
+        foreach ($claves_visuales as $clave) {
+            $stmt = $db->prepare("DELETE FROM configuraciones WHERE clave = ?");
+            $stmt->execute([$clave]);
+        }
         
         $_SESSION['mensaje_exito'] = 'Tema reseteado a valores por defecto';
         
@@ -349,9 +359,9 @@ function resetearTema() {
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
     <h2><i class="fas fa-palette"></i> Personalización Visual</h2>
-    <div class="btn-group">
+    <div class="btn-group rs-wrap-sm">
         <a href="configuracion.php" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Volver a Configuración
         </a>

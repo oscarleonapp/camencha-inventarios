@@ -97,7 +97,7 @@ require_once 'includes/layout_header.php';
 ?>
 
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2>
             <i class="fas fa-history"></i>
             Historial de Ventas
@@ -139,7 +139,7 @@ require_once 'includes/layout_header.php';
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card bg-warning text-white">
+            <div class="card bg-warning text-dark">
                 <div class="card-body text-center">
                     <h4><?php echo $estadisticas['ventas_pendientes']; ?></h4>
                     <small>Pendientes</small>
@@ -234,9 +234,9 @@ require_once 'includes/layout_header.php';
             </h6>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
+            <div class="table-responsive-md">
+                <table class="table table-striped table-hover accessibility-fix">
+                    <thead class="thead-titulos">
                         <tr>
                             <th>ID</th>
                             <th>Fecha/Hora</th>

@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 include 'includes/layout_header.php';
 ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-store"></i> Editar Tienda</h2>
         <a href="lista_tiendas.php" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Volver</a>
     </div>
@@ -112,4 +112,3 @@ include 'includes/layout_header.php';
     </div>
 
 <?php include 'includes/layout_footer.php'; ?>
-

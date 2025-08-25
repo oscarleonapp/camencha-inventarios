@@ -71,9 +71,9 @@ foreach ($rows as $r) {
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
   <h2><i class="fas fa-lightbulb"></i> Reorden Sugerido</h2>
-  <form method="GET" class="d-flex gap-2">
+  <form method="GET" class="d-flex gap-2 rs-wrap-sm">
     <select name="tienda_id" class="form-select" onchange="this.form.submit()">
       <?php foreach ($tiendas as $t): ?>
         <option value="<?php echo $t['id']; ?>" <?php echo $tienda_id==$t['id']?'selected':''; ?>><?php echo htmlspecialchars($t['nombre']); ?></option>
@@ -91,7 +91,7 @@ include 'includes/layout_header.php';
 
 <?php foreach ($grupos as $prov_id => $grupo): ?>
   <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex justify-content-between align-items-center rs-wrap-sm">
       <h5 class="mb-0"><i class="fas fa-truck"></i> <?php echo htmlspecialchars($grupo['proveedor_nombre']); ?></h5>
       <span class="text-muted small">Proveedor ID: <?php echo $grupo['proveedor_id'] ?: '—'; ?></span>
     </div>
@@ -101,8 +101,8 @@ include 'includes/layout_header.php';
         <input type="hidden" name="tienda_id" value="<?php echo $tienda_id; ?>">
         <input type="hidden" name="proveedor_id" value="<?php echo $grupo['proveedor_id']; ?>">
         <?php echo campoCSRF(); ?>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle">
+        <div class="table-responsive-md">
+          <table class="table table-sm align-middle accessibility-fix">
             <thead class="table-light">
               <tr>
                 <th>Producto</th>
@@ -139,4 +139,3 @@ include 'includes/layout_header.php';
 <?php endforeach; ?>
 
 <?php include 'includes/layout_footer.php'; ?>
-

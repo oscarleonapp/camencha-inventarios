@@ -1,0 +1,13 @@
+/* Subtle Accessibility Tweaks (kept minimal) */
+
+/* Improve muted text readability only when explicitly marked */
+.text-muted.critical-contrast { color: var(--text-secondary); }
+
+/* Table headers: prefer dark text for better contrast on light headers */
+.table.accessibility-fix thead.table-dark th { color: #000; }
+
+/* Optional enhanced focus for specific controls */
+.enhanced-focus:focus {
+  outline: 2px solid rgba(124, 58, 237, 0.35);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}

@@ -26,8 +26,8 @@ if (empty($items)) {
   exit;
 }
 ?>
-<div class="table-responsive">
-  <table class="table table-sm align-middle">
+<div class="table-responsive-md">
+  <table class="table table-sm align-middle oc-items-table">
     <thead class="table-light">
       <tr>
         <th>Producto</th>
@@ -53,4 +53,3 @@ if (empty($items)) {
     </tbody>
   </table>
 </div>
-

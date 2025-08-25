@@ -17,7 +17,7 @@ $stmt->execute([$id]);
 $ctz = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$ctz) { die('No encontrada'); }
 
-$sti = $db->prepare("SELECT ci.*, p.codigo FROM cotizacion_items ci JOIN productos p ON p.id = ci.producto_id WHERE ci.cotizacion_id = ?");
+$sti = $db->prepare("SELECT ci.*, p.codigo, p.nombre as producto_nombre FROM detalle_cotizaciones ci JOIN productos p ON p.id = ci.producto_id WHERE ci.cotizacion_id = ?");
 $sti->execute([$id]);
 $items = $sti->fetchAll(PDO::FETCH_ASSOC);
 
@@ -36,9 +36,10 @@ include 'includes/layout_header.php';
         <div class="col-md-4">
           <label class="form-label">Tienda</label>
           <select class="form-select" name="tienda_id" required>
+            <option value="">Seleccionar tienda...</option>
             <?php $tiendas = $db->query("SELECT id, nombre FROM tiendas WHERE activo=1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
               foreach ($tiendas as $t): ?>
-              <option value="<?php echo $t['id']; ?>" <?php echo $ctz['tienda_id']==$t['id']?'selected':''; ?>><?php echo htmlspecialchars($t['nombre']); ?></option>
+              <option value="<?php echo $t['id']; ?>"><?php echo htmlspecialchars($t['nombre']); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -53,7 +54,7 @@ include 'includes/layout_header.php';
           </select>
         </div>
       </div>
-      <div class="table-responsive">
+      <div class="table-responsive-md">
         <table class="table table-sm align-middle">
           <thead class="table-light">
             <tr>
@@ -67,7 +68,7 @@ include 'includes/layout_header.php';
             <tr>
               <td>
                 <input type="hidden" name="productos[]" value="<?php echo $it['producto_id']; ?>">
-                <strong>[<?php echo htmlspecialchars($it['codigo']); ?>]</strong> <?php echo htmlspecialchars($it['descripcion']); ?>
+                <strong>[<?php echo htmlspecialchars($it['codigo']); ?>]</strong> <?php echo htmlspecialchars($it['producto_nombre']); ?>
               </td>
               <td><input type="number" class="form-control" name="cantidades[]" min="1" value="<?php echo (int)$it['cantidad']; ?>"></td>
               <td><input type="number" step="0.01" class="form-control" name="precios[]" min="0" value="<?php echo (float)$it['precio_unitario']; ?>"></td>
@@ -84,4 +85,3 @@ include 'includes/layout_header.php';
 </div>
 
 <?php include 'includes/layout_footer.php'; ?>
-

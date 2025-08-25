@@ -86,9 +86,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
   <h2><i class="fas fa-history"></i> Cambios de Productos</h2>
-  <div class="btn-group">
+  <div class="btn-group rs-wrap-sm">
     <a class="btn btn-outline-success" href="<?php echo htmlspecialchars($_SERVER['PHP_SELF'] . '?' . (($_SERVER['QUERY_STRING'] ?? '') ? $_SERVER['QUERY_STRING'] . '&' : '') . 'export=csv'); ?>">
       <i class="fas fa-file-csv"></i> Exportar CSV
     </a>
@@ -132,14 +132,14 @@ include 'includes/layout_header.php';
 </div>
 
 <div class="card">
-  <div class="card-header d-flex justify-content-between align-items-center">
+  <div class="card-header d-flex justify-content-between align-items-center rs-wrap-sm">
     <h5 class="mb-0"><i class="fas fa-list"></i> Registros (<?php echo number_format($total); ?>)</h5>
     <small class="text-muted">Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?></small>
   </div>
   <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-dark">
+    <div class="table-responsive-md">
+      <table class="table table-hover mb-0 accessibility-fix">
+        <thead class="thead-titulos">
           <tr>
             <th>Fecha/Hora</th>
             <th>Usuario</th>

@@ -96,9 +96,9 @@ require_once 'includes/layout_header.php';
 ?>
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-clipboard-list"></i> Sistema de Logs</h2>
-        <div class="btn-group">
+        <div class="btn-group rs-wrap-sm">
             <button class="btn btn-outline-primary" onclick="location.reload()">
                 <i class="fas fa-sync-alt"></i> Actualizar
             </button>
@@ -127,7 +127,7 @@ require_once 'includes/layout_header.php';
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card bg-warning text-white">
+            <div class="card bg-warning text-dark">
                 <div class="card-body text-center">
                     <h4><?php echo number_format($stats['advertencias']); ?></h4>
                     <p class="mb-0">Advertencias</p>
@@ -135,7 +135,7 @@ require_once 'includes/layout_header.php';
             </div>
         </div>
         <div class="col-md-2">
-            <div class="card bg-dark text-white">
+            <div class="card bg-danger text-white">
                 <div class="card-body text-center">
                     <h4><?php echo number_format($stats['criticos']); ?></h4>
                     <p class="mb-0">Críticos</p>
@@ -229,14 +229,14 @@ require_once 'includes/layout_header.php';
 
     <!-- Tabla de Logs -->
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center rs-wrap-sm">
             <h5><i class="fas fa-list"></i> Registros de Logs (<?php echo number_format($total_logs); ?> total)</h5>
             <small class="text-muted">Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?></small>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-dark">
+            <div class="table-responsive-md">
+                <table class="table table-hover mb-0 accessibility-fix">
+                    <thead class="thead-titulos">
                         <tr>
                             <th>Fecha/Hora</th>
                             <th>Usuario</th>

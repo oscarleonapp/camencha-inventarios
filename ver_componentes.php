@@ -76,7 +76,7 @@ $componentes = $stmt_componentes->fetchAll(PDO::FETCH_ASSOC);
             </div>
             <div class="card-body">
                 <?php if (count($componentes) > 0): ?>
-                    <div class="table-responsive">
+                    <div class="table-responsive-md">
                         <table class="table">
                             <thead>
                                 <tr>

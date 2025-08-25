@@ -59,7 +59,7 @@ try {
                 $tipo = $diferencia > 0 ? 'entrada' : 'salida';
                 $cant_mov = abs($diferencia);
                 if ($cant_mov > 0) {
-                    $stmtM = $db->prepare("INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) VALUES (?, ?, ?, ?, 'Ajuste inline', ?)");
+                    $stmtM = $db->prepare("INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) VALUES (?, ?, ?, ?, 'Ajuste inline', ?)");
                     $stmtM->execute([$tipo, $producto_id, $tienda_id, $cant_mov, $usuario_id]);
                 }
 
@@ -95,7 +95,7 @@ try {
 
                 // Registrar ajuste reparación
                 $cant_mov = abs($dif_rep);
-                $stmtM = $db->prepare("INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) VALUES ('ajuste', ?, ?, ?, 'Ajuste reparación inline', ?)");
+                $stmtM = $db->prepare("INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) VALUES ('ajuste', ?, ?, ?, 'Ajuste reparación inline', ?)");
                 $stmtM->execute([$producto_id, $tienda_id, $cant_mov, $usuario_id]);
 
                 echo json_encode([
@@ -129,7 +129,7 @@ try {
 
         // Movimiento de entrada inicial
         if ($cant_init > 0) {
-            $stmtM = $db->prepare("INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) VALUES ('entrada', ?, ?, ?, 'Inventario inicial inline', ?)");
+            $stmtM = $db->prepare("INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) VALUES ('entrada', ?, ?, ?, 'Inventario inicial inline', ?)");
             $stmtM->execute([$producto_id, $tienda_id, $cant_init, $usuario_id]);
         }
 

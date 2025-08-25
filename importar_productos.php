@@ -109,9 +109,9 @@ if (isset($_GET['descargar_plantilla'])) {
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
     <h2><i class="fas fa-upload"></i> <span class="editable" data-label="importar_titulo">Importar Productos Masivamente</span></h2>
-    <div class="btn-group">
+    <div class="btn-group rs-wrap-sm">
         <a href="productos.php" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Volver a Productos
         </a>
@@ -196,7 +196,7 @@ include 'includes/layout_header.php';
             <?php if (!empty($resultado_importacion['detalles'])): ?>
                 <div class="mt-4">
                     <h6>Detalles de Procesamiento:</h6>
-                    <div class="table-responsive">
+                    <div class="table-responsive-md">
                         <table class="table table-sm">
                             <thead>
                                 <tr>

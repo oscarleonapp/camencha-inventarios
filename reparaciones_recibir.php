@@ -38,7 +38,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] == 'recibir_reparacion
             
             // Actualizar estado de la reparación
             $query_update_reparacion = "UPDATE reparaciones 
-                                       SET estado = ?, fecha_completado = NOW(), costo_reparacion = ?, 
+                                       SET estado = ?, fecha_retorno = NOW(), costo_reparacion = ?, 
                                            notas = ?, usuario_retorno_id = ?
                                        WHERE id = ?";
             $stmt_update_reparacion = $db->prepare($query_update_reparacion);
@@ -54,7 +54,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] == 'recibir_reparacion
                 $stmt_update_inventario->execute([$reparacion['cantidad'], $reparacion['tienda_id'], $reparacion['producto_id']]);
                 
                 // Registrar movimiento de inventario (entrada)
-                $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id, fecha)
+                $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id, fecha)
                                     VALUES ('entrada', ?, ?, ?, 'Retorno de reparación exitosa', ?, 'reparacion', ?, NOW())";
                 $stmt_movimiento = $db->prepare($query_movimiento);
                 $stmt_movimiento->execute([$reparacion['producto_id'], $reparacion['tienda_id'], $reparacion['cantidad'], $reparacion_id, $usuario_id]);
@@ -69,7 +69,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] == 'recibir_reparacion
                 $stmt_update_inventario->execute([$reparacion['cantidad'], $reparacion['cantidad'], $reparacion['tienda_id'], $reparacion['producto_id']]);
                 
                 // Registrar movimiento de inventario (pérdida)
-                $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_origen_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id, fecha)
+                $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_origen_id, cantidad, motivo, referencia_id, referencia_tipo, usuario_id, fecha)
                                     VALUES ('ajuste', ?, ?, ?, 'Pérdida en reparación', ?, 'reparacion', ?, NOW())";
                 $stmt_movimiento = $db->prepare($query_movimiento);
                 $stmt_movimiento->execute([$reparacion['producto_id'], $reparacion['tienda_id'], $reparacion['cantidad'], $reparacion_id, $usuario_id]);
@@ -106,9 +106,9 @@ $reparaciones_pendientes = $stmt_reparaciones->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
     <h2><i class="fas fa-check-circle"></i> Recibir de Reparación</h2>
-    <div class="btn-group">
+    <div class="btn-group rs-wrap-sm">
         <a href="reparaciones.php" class="btn btn-outline-secondary">
             <i class="fas fa-list"></i> Ver Reparaciones
         </a>
@@ -133,12 +133,12 @@ include 'includes/layout_header.php';
 <?php endif; ?>
 
 <div class="card">
-    <div class="card-header">
+            <div class="card-header rs-wrap-sm">
         <h5 class="mb-0"><i class="fas fa-clock"></i> Reparaciones Pendientes</h5>
     </div>
     <div class="card-body">
         <?php if (!empty($reparaciones_pendientes)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive-md">
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -175,7 +175,7 @@ include 'includes/layout_header.php';
                                 <td><?php echo htmlspecialchars($rep['usuario_envio']); ?></td>
                                 <td>
                                     <small class="text-muted">
-                                        <?php echo htmlspecialchars(substr($rep['descripcion_problema'], 0, 50)) . (strlen($rep['descripcion_problema']) > 50 ? '...' : ''); ?>
+                                        <?php echo htmlspecialchars(substr($rep['notas'] ?? '', 0, 50)) . (strlen($rep['notas'] ?? '') > 50 ? '...' : ''); ?>
                                     </small>
                                 </td>
                                 <td>
@@ -269,8 +269,8 @@ function abrirModalRecibir(reparacion) {
         <strong>Producto:</strong> ${reparacion.codigo} - ${reparacion.producto_nombre}<br>
         <strong>Tienda:</strong> ${reparacion.tienda_nombre}<br>
         <strong>Cantidad:</strong> ${reparacion.cantidad} unidades<br>
-        <strong>Problema:</strong> ${reparacion.descripcion_problema}<br>
-        <strong>Técnico:</strong> ${reparacion.tecnico_proveedor || 'No especificado'}<br>
+        <strong>Problema:</strong> ${reparacion.notas || 'No especificado'}<br>
+        <strong>Técnico:</strong> ${reparacion.proveedor_reparacion || 'No especificado'}<br>
         <strong>Enviado:</strong> ${new Date(reparacion.fecha_envio).toLocaleDateString()} por ${reparacion.usuario_envio}
     `;
     

@@ -1,0 +1,49 @@
+/* Accessibility Utilities (token-based, minimal !important) */
+
+/* Focus rings for keyboard navigation */
+*:focus {
+  outline: 2px solid rgba(124, 58, 237, 0.35);
+  outline-offset: 2px;
+}
+
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: 2px solid rgba(124, 58, 237, 0.35);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+/* Small text contrast */
+small,
+.small { color: var(--text-muted); }
+
+/* Table readability (opt-in via .accessibility-fix) */
+.table.accessibility-fix thead th,
+table.accessibility-fix thead th { 
+  background-color: var(--surface-subtle);
+  color: var(--text-primary);
+}
+
+.table.accessibility-fix th,
+.table.accessibility-fix td,
+table.accessibility-fix th,
+table.accessibility-fix td {
+  color: var(--text-primary);
+}
+
+/* Encabezados de tablas legibles: usar texto oscuro */
+thead.table-dark th,
+.table.accessibility-fix thead.table-dark th,
+table.accessibility-fix thead.table-dark th { color: #000; }
+
+/* Scoped tweak: Performance por Tienda (Ventas en negro con badge claro) */
+.performance-tiendas-table tbody td:nth-child(2),
+.performance-tiendas-table tbody td:nth-child(2) * {
+  color: #000;
+}
+
+.performance-tiendas-table tbody td:nth-child(2) .badge {
+  background-color: #f8f9fa;
+  border-color: #e2e8f0;
+  color: #000;
+}

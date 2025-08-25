@@ -3,6 +3,7 @@ $titulo = "Ventas - Sistema de Inventarios";
 require_once 'includes/auth.php';
 require_once 'config/database.php';
 require_once 'includes/config_functions.php';
+require_once 'includes/tienda_security.php';
 
 verificarLogin();
 verificarPermiso('ventas_ver');
@@ -18,6 +19,14 @@ if ($_POST && isset($_POST['action'])) {
         $precios_override = $_POST['precios'] ?? null;
         // Normalizar vendedor_id: vacío -> NULL; validar existencia
         $vendedor_id = isset($_POST['vendedor_id']) && $_POST['vendedor_id'] !== '' ? (int)$_POST['vendedor_id'] : null;
+        
+        // Validar que el usuario tiene acceso a esta tienda
+        try {
+            validarAccesoTienda($db, $_SESSION['usuario_id'], $tienda_id, 'realizar ventas');
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+            goto skip_venta_process;
+        }
         if ($vendedor_id !== null) {
             $stmt_v = $db->prepare("SELECT id FROM vendedores WHERE id = ?");
             $stmt_v->execute([$vendedor_id]);
@@ -72,7 +81,7 @@ if ($_POST && isset($_POST['action'])) {
                             $stmt_update = $db->prepare($query_update);
                             $stmt_update->execute([$cantidad_necesaria, $tienda_id, $componente['producto_elemento_id']]);
                             
-                            $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_origen_id, cantidad, motivo, usuario_id) 
+                            $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_origen_id, cantidad, motivo, usuario_id) 
                                                VALUES ('salida', ?, ?, ?, 'Venta de conjunto', ?)";
                             $stmt_movimiento = $db->prepare($query_movimiento);
                             $stmt_movimiento->execute([$componente['producto_elemento_id'], $tienda_id, $cantidad_necesaria, $usuario_id]);
@@ -92,7 +101,7 @@ if ($_POST && isset($_POST['action'])) {
                         $stmt_update = $db->prepare($query_update);
                         $stmt_update->execute([$cantidad, $tienda_id, $producto_id]);
                         
-                        $query_movimiento = "INSERT INTO movimientos_inventario (tipo, producto_id, tienda_origen_id, cantidad, motivo, usuario_id) 
+                        $query_movimiento = "INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_origen_id, cantidad, motivo, usuario_id) 
                                            VALUES ('salida', ?, ?, ?, 'Venta directa', ?)";
                         $stmt_movimiento = $db->prepare($query_movimiento);
                         $stmt_movimiento->execute([$producto_id, $tienda_id, $cantidad, $usuario_id]);
@@ -144,6 +153,19 @@ if ($_POST && isset($_POST['action'])) {
     }
 }
 
+skip_venta_process:
+
+// Obtener filtros de tienda para el usuario actual
+$usuario_id = $_SESSION['usuario_id'];
+$filtro_tiendas = getFiltroTiendas($db, $usuario_id, 'v.tienda_id');
+
+$where_ventas = '';
+$params_ventas = [];
+if (!empty($filtro_tiendas['where'])) {
+    $where_ventas = ' WHERE ' . $filtro_tiendas['where'];
+    $params_ventas = $filtro_tiendas['params'];
+}
+
 $query_ventas = "SELECT v.*, t.nombre as tienda_nombre, u.nombre as usuario_nombre,
                         vend.nombre as vendedor_nombre,
                         vend.comision_porcentaje
@@ -151,27 +173,36 @@ $query_ventas = "SELECT v.*, t.nombre as tienda_nombre, u.nombre as usuario_nomb
                 JOIN tiendas t ON v.tienda_id = t.id 
                 JOIN usuarios u ON v.usuario_id = u.id 
                 LEFT JOIN vendedores vend ON v.vendedor_id = vend.id
+                $where_ventas
                 ORDER BY v.fecha DESC LIMIT 50";
 $stmt_ventas = $db->prepare($query_ventas);
-$stmt_ventas->execute();
+$stmt_ventas->execute($params_ventas);
 $ventas = $stmt_ventas->fetchAll(PDO::FETCH_ASSOC);
 
-$query_tiendas = "SELECT * FROM tiendas WHERE activo = 1 ORDER BY nombre";
-$stmt_tiendas = $db->prepare($query_tiendas);
-$stmt_tiendas->execute();
-$tiendas = $stmt_tiendas->fetchAll(PDO::FETCH_ASSOC);
+// Solo mostrar tiendas asignadas al usuario
+$tiendas = getTiendasUsuarioCompleta($db, $usuario_id);
 
-// Obtener productos con su inventario total por tienda
+// Obtener productos con inventario solo de tiendas del usuario
+$tiendas_usuario = getTiendasUsuario($db, $usuario_id);
+$tiendas_filter = '';
+$params_productos = [];
+
+if (!empty($tiendas_usuario) && !esAdmin()) {
+    $placeholders = str_repeat('?,', count($tiendas_usuario) - 1) . '?';
+    $tiendas_filter = " AND t.id IN ($placeholders)";
+    $params_productos = $tiendas_usuario;
+}
+
 $query_productos = "SELECT p.*, 
     (SELECT GROUP_CONCAT(CONCAT(t.nombre, ':', COALESCE(i.cantidad - COALESCE(i.cantidad_reparacion, 0), 0)) SEPARATOR ' | ') 
      FROM tiendas t 
      LEFT JOIN inventarios i ON t.id = i.tienda_id AND i.producto_id = p.id 
-     WHERE t.activo = 1) as stock_por_tienda
+     WHERE t.activo = 1 $tiendas_filter) as stock_por_tienda
 FROM productos p 
 WHERE p.activo = 1 
 ORDER BY p.nombre";
 $stmt_productos = $db->prepare($query_productos);
-$stmt_productos->execute();
+$stmt_productos->execute($params_productos);
 $productos = $stmt_productos->fetchAll(PDO::FETCH_ASSOC);
 
 $query_vendedores = "SELECT * FROM vendedores WHERE activo = 1 ORDER BY nombre";
@@ -182,7 +213,7 @@ $vendedores = $stmt_vendedores->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-shopping-cart"></i> <span class="editable" data-label="ventas_titulo">Sistema de Ventas</span></h2>
         <?php if (tienePermiso('ventas_crear', 'crear')): ?>
         <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#nuevaVentaForm">
@@ -248,9 +279,9 @@ include 'includes/layout_header.php';
                     </div>
                     
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2 rs-wrap-sm">
                             <label class="form-label mb-0">Productos</label>
-                            <div class="btn-group">
+                            <div class="btn-group rs-wrap-sm">
                                 <button type="button" class="btn btn-outline-primary btn-sm" onclick="agregarProducto()">
                                     <i class="fas fa-plus"></i> Agregar Producto
                                 </button>
@@ -323,8 +354,8 @@ include 'includes/layout_header.php';
                 <h5>Historial de Ventas</h5>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
+                <div class="table-responsive-md">
+                    <table class="table accessibility-fix">
                         <thead>
                             <tr>
                                 <th>ID</th>

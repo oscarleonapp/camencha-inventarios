@@ -69,9 +69,9 @@ $inventarios_reparacion = $stmt_inventarios->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
     <h2><i class="fas fa-tools"></i> Centro de Reparaciones</h2>
-    <div class="btn-group">
+    <div class="btn-group rs-wrap-sm">
         <a href="reparaciones_enviar.php" class="btn btn-primary">
             <i class="fas fa-paper-plane"></i> Enviar a Reparación
         </a>
@@ -173,8 +173,8 @@ include 'includes/layout_header.php';
             </div>
             <div class="card-body">
                 <?php if (!empty($reparaciones_recientes)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
+                    <div class="table-responsive-md">
+                        <table class="table table-sm accessibility-fix">
                             <thead>
                                 <tr>
                                     <th>Producto</th>
@@ -228,8 +228,8 @@ include 'includes/layout_header.php';
             </div>
             <div class="card-body">
                 <?php if (!empty($productos_problemas)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
+                    <div class="table-responsive-md">
+                        <table class="table table-sm accessibility-fix">
                             <thead>
                                 <tr>
                                     <th>Producto</th>
@@ -291,8 +291,8 @@ include 'includes/layout_header.php';
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+                    <div class="table-responsive-md">
+                        <table class="table table-hover accessibility-fix">
                             <thead>
                                 <tr>
                                     <th>Tienda</th>

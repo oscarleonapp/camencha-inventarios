@@ -230,16 +230,25 @@ Sistema de inventario completo desarrollado en PHP/MySQL para gestión de produc
 curl http://localhost/dashboard/  # Verificar Apache
 curl http://localhost/phpmyadmin/ # Verificar phpMyAdmin
 
+# Verificar estado de servicios en WSL
+ps aux | grep mysql    # Verificar MySQL está corriendo
+ps aux | grep apache   # Verificar Apache está corriendo
+
 # Configuración PHP recomendada (desarrollo)
 error_reporting=E_ALL
 display_errors=On
 log_errors=On
+upload_max_filesize=10M
+post_max_size=12M
+max_execution_time=60
+memory_limit=256M
 
 # Extensiones PHP requeridas
 extension=pdo_mysql
 extension=gd
 extension=fileinfo
 extension=zip
+extension=mbstring
 ```
 
 ### Base de Datos
@@ -265,33 +274,40 @@ mysql -u root -p inventario_sistema -e "SELECT COUNT(*) FROM configuraciones;"
 
 ### Desarrollo y Depuración
 ```bash
-# No hay herramientas de build - archivos estáticos
+# No hay herramientas de build - archivos estáticos servidos directamente
 # Assets ubicados en:
-# - assets/css/admin.css
-# - assets/js/admin.js
+# - assets/css/admin.css - Estilos principales
+# - assets/js/admin.js - JavaScript funcionalidades
+# - estilos_dinamicos.css.php - CSS dinámico personalizable
 
-# Verificar permisos de archivos (Linux/Mac)
-chmod 755 includes/
-chmod 755 uploads/
-chmod 755 uploads/boletas/
-chmod 755 uploads/branding/
-chmod 755 uploads/temp/
-chmod 644 config/database.php
+# Verificar permisos de archivos (Linux/WSL)
+chmod 755 includes/ uploads/ ajax/
+chmod 755 uploads/boletas/ uploads/branding/ uploads/temp/ uploads/reparaciones/
+chmod 644 config/database.php *.php
+chmod 644 includes/*.php
 
-# Configuración PHP recomendada para uploads y QR
+# Configuración PHP recomendada para uploads, QR y Excel
 upload_max_filesize = 10M
 post_max_size = 12M
 max_execution_time = 60
 memory_limit = 256M
+max_input_vars = 1000
 
-# Logs de PHP (ubicación común)
+# Logs de PHP (ubicación común WSL/XAMPP)
 tail -f /var/log/apache2/error.log
 tail -f /opt/lampp/logs/error_log
+# En XAMPP Windows:
+# C:\xampp\apache\logs\error.log
 
-# Testing de funcionalidades nuevas
-php test_codigo_generator.php  # Probar generador códigos
-php test_productos_simple.php  # Probar vista móvil
-php debug_qr_schema.php        # Debug schema QR
+# Testing de funcionalidades (ejecutar desde navegador)
+# http://localhost/inventario-claude/test_simple.php
+# http://localhost/inventario-claude/test_codigo_generator.php
+# http://localhost/inventario-claude/test_permisos.php
+# http://localhost/inventario-claude/debug_qr_schema.php
+
+# Verificar estructura de archivos críticos
+ls -la config/ includes/ uploads/
+ls -la *.sql
 ```
 
 ### URL del Proyecto
@@ -333,21 +349,28 @@ php debug_qr_schema.php        # Debug schema QR
 
 ### Al iniciar trabajo:
 1. Siempre verificar que las tablas de configuración existan
-2. Usar las funciones de seguridad implementadas
-3. Validar entrada y escapar salida
-4. Seguir patrón MVC existente
+2. Usar las funciones de seguridad implementadas (CSRF, sesiones, validación)
+3. Validar entrada y escapar salida en TODAS las operaciones
+4. Seguir patrón MVC modificado existente
+5. **CRÍTICO**: Verificar estructura real de BD antes de asumir nombres de columnas
+6. Probar cambios con archivos test_*.php cuando corresponda
 
 ### Archivos críticos para leer primero:
-- `includes/auth.php` - Sistema de autenticación
+- `includes/auth.php` - Sistema de autenticación y permisos (OBLIGATORIO)
 - `config/database.php` - Conexión BD
 - `includes/config_functions.php` - Configuración sistema
+- `includes/layout_header.php` - Layout HTML y estilos dinámicos
+- `includes/csrf_protection.php` - Protección CSRF
+- `includes/session_security.php` - Configuración segura sesiones
 
 ### Convenciones del código:
-- Prepared statements PDO siempre
-- Nombres en español para BD
-- Bootstrap 5 para UI
-- Font Awesome para iconos
-- Transacciones para operaciones complejas
+- **PDO Prepared statements**: OBLIGATORIO siempre (100% protección SQL injection)
+- **Nombres en español**: Tablas, campos, variables en BD
+- **Bootstrap 5**: UI responsiva con clases modernas
+- **Font Awesome 6**: Iconos consistentes
+- **Transacciones**: Para operaciones complejas (ventas, traslados, etc.)
+- **UTF-8**: Charset obligatorio en BD y PHP
+- **CSRF tokens**: En todos los formularios de escritura
 
 ### Endpoints AJAX importantes:
 - `includes/toggle_edit_mode.php` - Alternar modo edición
@@ -369,11 +392,19 @@ php debug_qr_schema.php        # Debug schema QR
 - **URL local**: `http://localhost/inventario-claude/`
 - **Sin framework de testing**: Sistema sin PHPUnit - testing manual
 - **Sin herramientas de linting**: Sin PHP CodeSniffer configurado
+- **Archivos de testing disponibles**:
+  - `test_simple.php` - Test básico de funciones
+  - `test_codigo_generator.php` - Test generador de códigos
+  - `test_functions.php` - Test funciones sistema
+  - `test_permisos.php` - Test sistema permisos
+  - `test_productos_simple.php` - Test vista móvil
+  - `test_utf8.php` - Test codificación UTF-8
 - **Checklist manual**:
-  - Verificar permisos por rol
+  - Verificar permisos por rol usando test_permisos.php
   - Validar formularios CSRF
   - Probar transacciones de BD
   - Verificar logs de errores PHP
+  - Ejecutar archivos test_*.php para validar funciones específicas
 
 ### Errores Comunes y Soluciones:
 ```bash
@@ -477,30 +508,36 @@ mysql -u root -p inventario_sistema < inventario_sistema-new.sql
 ```
 
 **Último análisis**: Agosto 2025 - Sistema completamente funcional en entorno XAMPP/WSL:
-- ✅ Base de datos `inventario_sistema` con estructura completa
+- ✅ Base de datos `inventario_sistema` con estructura completa y optimizada
 - ✅ Configuración MySQL para XAMPP Windows verificada
-- ✅ Sistema de boletas completamente funcional
-- ✅ Mejoras UI/UX implementadas 
-- ✅ Errores de esquema BD corregidos
-- ✅ Documentación actualizada y completa
-- ✅ Comandos WSL/XAMPP documentados
+- ✅ Sistema de boletas completamente funcional con upload de imágenes
+- ✅ Mejoras UI/UX implementadas con interfaz moderna responsiva
+- ✅ Errores de esquema BD identificados y corregidos sistemáticamente
+- ✅ Documentación técnica actualizada y completa
+- ✅ Comandos WSL/XAMPP documentados con casos de uso específicos
+- ✅ Archivos de testing disponibles para validación de funcionalidades
 
 ### **CARACTERÍSTICAS AVANZADAS IMPLEMENTADAS**:
-  - ✅ Sistema de generación automática de códigos
-  - ✅ Importación masiva desde Excel/CSV  
-  - ✅ Códigos QR con escáner móvil
-  - ✅ Sistema de cotizaciones completo
-  - ✅ Personalización visual y branding
-  - ✅ Exportación configurable de datos
-  - ✅ Panel de configuración del sistema
-  - ✅ Logs del sistema con interfaz web
+  - ✅ Sistema de generación automática de códigos únicos
+  - ✅ Importación masiva desde Excel/CSV con validación
+  - ✅ Códigos QR con escáner móvil para inventarios
+  - ✅ Sistema de cotizaciones completo con conversión a ventas
+  - ✅ Personalización visual y branding empresarial dinámico
+  - ✅ Exportación configurable de datos en múltiples formatos
+  - ✅ Panel de configuración del sistema centralizado
+  - ✅ Logs del sistema con interfaz web de consulta
   - ✅ Vista móvil optimizada (productos_simple.php)
-  - ✅ Notificaciones toast no intrusivas
-  - ✅ Sistema de reset completo del sistema
+  - ✅ Notificaciones toast no intrusivas con estilos modernos
+  - ✅ Sistema de reset completo del sistema con respaldos
+  - ✅ Sistema de comisiones de vendedores automático
+  - ✅ Workflow completo de reparaciones integrado con inventario
+  - ✅ Sistema de reembolsos con reintegración automática
 
 ### **ENTORNO DE DESARROLLO**:
-- **OS**: Windows con WSL2
-- **Servidor**: XAMPP (Apache + MySQL)
-- **Base de datos activa**: `inventario_sistema` 
+- **OS**: Windows con WSL2 (Linux subsystem)
+- **Servidor**: XAMPP (Apache 2.4+ + MySQL 8.0+)
+- **Base de datos activa**: `inventario_sistema` (charset: utf8mb4)
 - **URL local**: `http://localhost/inventario-claude/`
-- **MySQL path**: `/mnt/c/xampp/mysql/bin/mysql.exe`
+- **MySQL path WSL**: `/mnt/c/xampp/mysql/bin/mysql.exe`
+- **PHP Version**: 8.0+ con extensiones requeridas
+- **Frontend**: Bootstrap 5.3 + jQuery 3.6 + Font Awesome 6.0

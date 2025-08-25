@@ -42,7 +42,12 @@
       "Bash(sed:*)",
       "Bash(mkdir:*)",
       "Bash(php:*)",
-      "Bash(/mnt/c/xampp/mysql/bin/mysql.exe:*)"
+      "Bash(/mnt/c/xampp/mysql/bin/mysql.exe:*)",
+      "Bash(__NEW_LINE__ cp 342332_20250821021546.png boleta_001.jpg)",
+      "Bash(__NEW_LINE__ cp 342332_20250821021546.png boleta_002.jpg)",
+      "Bash(__NEW_LINE__ cp 342332_20250821021546.png boleta_003.jpg)",
+      "Bash(__NEW_LINE__ ls -la)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

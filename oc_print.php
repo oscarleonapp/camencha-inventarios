@@ -38,7 +38,17 @@ foreach ($rows as $r) { $total += (float)$r['precio_unitario'] * (int)$r['cantid
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OC #<?php echo $oc['id']; ?></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <style>@media print{.no-print{display:none} body{-webkit-print-color-adjust:exact}}</style>
+  <style>
+    @media print{.no-print{display:none} body{-webkit-print-color-adjust:exact}}
+    /* Responsive helpers for tablet */
+    @media (max-width: 1024px) {
+      .table-responsive-md { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .table-responsive-md > table { min-width: 900px; }
+      .table-responsive-md th, .table-responsive-md td { white-space: nowrap; }
+      /* Producto: permitir elipsis */
+      .table-responsive-md td:nth-child(2) { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+    }
+  </style>
 </head>
 <body class="p-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -70,7 +80,7 @@ foreach ($rows as $r) { $total += (float)$r['precio_unitario'] * (int)$r['cantid
   <?php if (!empty($oc['notas'])): ?>
   <div class="mb-3"><strong>Notas:</strong> <?php echo nl2br(htmlspecialchars($oc['notas'])); ?></div>
   <?php endif; ?>
-  <div class="table-responsive">
+  <div class="table-responsive-md">
     <table class="table table-bordered align-middle">
       <thead class="table-light"><tr>
         <th>Código</th><th>Producto</th><th class="text-end">Solicitado</th><th class="text-end">Recibido</th><th class="text-end">Precio</th><th class="text-end">Subtotal</th>

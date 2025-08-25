@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 include 'includes/layout_header.php';
 ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-user-plus"></i> Nuevo Encargado</h2>
         <a href="lista_encargados.php" class="btn btn-outline-secondary"><i class="fas fa-users"></i> Lista de Encargados</a>
     </div>
@@ -72,4 +72,3 @@ include 'includes/layout_header.php';
     </div>
 
 <?php include 'includes/layout_footer.php'; ?>
-

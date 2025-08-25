@@ -39,9 +39,9 @@ $productos = $stmt_productos->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="card-body">
                         <?php if (count($productos) > 0): ?>
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead class="table-dark">
+                            <div class="table-responsive-md">
+                                <table class="table table-striped table-hover accessibility-fix">
+                                    <thead class="thead-titulos">
                                         <tr>
                                             <th>ID</th>
                                             <th>Código</th>

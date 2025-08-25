@@ -89,7 +89,7 @@ if ($_POST && isset($_POST['action'])) {
             $stmtI->execute([$tienda_id, $pid, $toRecv]);
           }
           // Movimiento de entrada
-          $stmtM = $db->prepare("INSERT INTO movimientos_inventario (tipo, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) VALUES ('entrada', ?, ?, ?, ?, ?)");
+          $stmtM = $db->prepare("INSERT INTO movimientos_inventario (tipo_movimiento, producto_id, tienda_destino_id, cantidad, motivo, usuario_id) VALUES ('entrada', ?, ?, ?, ?, ?)");
           $stmtM->execute([$pid, $tienda_id, $toRecv, 'Recepción OC #'.$oc_id, $usuario_id]);
         }
       }
@@ -162,9 +162,9 @@ $ocs = $stmtOCs->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
   <h2><i class="fas fa-file-invoice"></i> Órdenes de Compra</h2>
-  <div class="btn-group">
+  <div class="btn-group rs-wrap-sm">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaOC">
       <i class="fas fa-plus"></i> Nueva OC
     </button>
@@ -221,8 +221,8 @@ include 'includes/layout_header.php';
         <i class="fas fa-file-csv"></i> Exportar CSV
       </a>
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped align-middle">
+    <div class="table-responsive-md">
+      <table class="table table-striped align-middle accessibility-fix">
         <thead>
           <tr>
             <th>Número</th>
@@ -297,8 +297,8 @@ include 'includes/layout_header.php';
               <input type="text" class="form-control" name="notas" placeholder="Opcional">
             </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-sm align-middle" id="tablaItemsOC">
+          <div class="table-responsive-md">
+            <table class="table table-sm align-middle accessibility-fix" id="tablaItemsOC">
               <thead class="table-light">
                 <tr>
                   <th style="width:40%">Producto</th>

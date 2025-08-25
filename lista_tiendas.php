@@ -84,7 +84,7 @@ $tiendas = $stmt_tiendas->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-store"></i> Lista de Tiendas</h2>
         <?php if (tienePermiso('tiendas_crear', 'crear')): ?>
         <a href="nueva_tienda.php" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Tienda</a>
@@ -122,8 +122,8 @@ include 'includes/layout_header.php';
             </form>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
+            <div class="table-responsive-md">
+                <table class="table table-striped accessibility-fix">
                     <thead>
                         <tr>
                             <th>ID</th>

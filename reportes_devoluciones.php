@@ -134,9 +134,9 @@ $productos = $stmt_productos->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
     <h2><i class="fas fa-undo-alt"></i> Reportes de Devoluciones</h2>
-    <div class="btn-group">
+    <div class="btn-group rs-wrap-sm">
         <button class="btn btn-outline-success" onclick="exportarReporte()">
             <i class="fas fa-file-excel"></i> Exportar Excel
         </button>
@@ -200,7 +200,7 @@ include 'includes/layout_header.php';
     <div class="col-md-3">
         <div class="card bg-info text-white">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between rs-wrap-sm">
                     <div>
                         <h4><?php echo number_format($stats['total_devoluciones']); ?></h4>
                         <p class="mb-0">Total Devoluciones</p>
@@ -213,9 +213,9 @@ include 'includes/layout_header.php';
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-warning text-white">
+        <div class="card bg-warning text-dark">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between rs-wrap-sm">
                     <div>
                         <h4><?php echo number_format($stats['total_unidades_devueltas']); ?></h4>
                         <p class="mb-0">Unidades Devueltas</p>
@@ -230,7 +230,7 @@ include 'includes/layout_header.php';
     <div class="col-md-3">
         <div class="card bg-danger text-white">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between rs-wrap-sm">
                     <div>
                         <h4><?php echo formatearMoneda($stats['valor_total_devuelto']); ?></h4>
                         <p class="mb-0">Valor Total Devuelto</p>
@@ -245,7 +245,7 @@ include 'includes/layout_header.php';
     <div class="col-md-3">
         <div class="card bg-success text-white">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between rs-wrap-sm">
                     <div>
                         <h4><?php echo number_format($stats['promedio_cantidad'], 1); ?></h4>
                         <p class="mb-0">Promedio por Devolución</p>
@@ -267,9 +267,9 @@ include 'includes/layout_header.php';
                 <h5 class="mb-0"><i class="fas fa-list"></i> Historial de Devoluciones</h5>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
+                <div class="table-responsive-md">
                     <table class="table table-striped table-hover" id="tablaDevoluciones">
-                        <thead class="table-dark">
+                        <thead class="thead-titulos">
                             <tr>
                                 <th>Fecha</th>
                                 <th>Hora</th>

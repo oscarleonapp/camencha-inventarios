@@ -1,6 +1,7 @@
 </div> <!-- Cierre main-content -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="assets/js/admin.js"></script>
 <?php if (isset($js_adicional)): ?>
     <?php foreach ($js_adicional as $js): ?>
@@ -238,6 +239,79 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Responsiveness: envolver tablas automáticamente para scroll horizontal en pantallas pequeñas
+document.addEventListener('DOMContentLoaded', function() {
+    const wrapTable = (tbl) => {
+        if (!tbl || !(tbl instanceof HTMLElement)) return;
+        if (tbl.classList.contains('no-auto-responsive') || tbl.hasAttribute('data-no-responsive')) return;
+        if (tbl.closest('[class*="table-responsive"], .responsive-auto-wrapper')) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-responsive responsive-auto-wrapper';
+        tbl.parentNode.insertBefore(wrapper, tbl);
+        wrapper.appendChild(tbl);
+    };
+
+    try {
+        const tables = document.querySelectorAll('table.table');
+        tables.forEach(wrapTable);
+
+        // Etiquetas específicas por página para min-width dirigidos
+        const page = (location.pathname.split('/').pop() || '').toLowerCase();
+        const pageClassMap = {
+            'contabilidad_reconciliacion.php': 'reconciliacion-table',
+            'boletas.php': 'boletas-table',
+            'aprobacion_ventas_vendedor.php': 'aprobacion-vendedor-table',
+            'inventarios.php': 'inventarios-table',
+            'cotizaciones.php': 'cotizaciones-table',
+            'proveedores.php': 'proveedores-table',
+            'usuarios.php': 'usuarios-table',
+            'reportes_vendedores.php': 'reportes-vendedores-table',
+            'ventas.php': 'ventas-table',
+            'historial_ventas.php': 'historial-ventas-table',
+            'reorden.php': 'reorden-table',
+            'reparaciones.php': 'reparaciones-table',
+            'reparaciones_enviar.php': 'reparaciones-enviar-table',
+            'reparaciones_recibir.php': 'reparaciones-recibir-table',
+            'compras.php': 'compras-table',
+            'traslados.php': 'traslados-table',
+            'gerente_dashboard.php': 'gerente-dashboard-table',
+            'ranking_vendedores.php': 'ranking-vendedores-table'
+        };
+
+        // Listados auxiliares sin clase específica en el markup
+        Object.assign(pageClassMap, {
+            'lista_tiendas.php': 'lista-tiendas-table',
+            'lista_encargados.php': 'lista-encargados-table',
+            'tiendas.php': 'tiendas-table'
+        });
+        const extraClass = pageClassMap[page];
+        if (extraClass) {
+            tables.forEach(tbl => tbl.classList.add(extraClass));
+        }
+
+        // Observar tablas añadidas dinámicamente (AJAX/partials)
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((m) => {
+                m.addedNodes.forEach((node) => {
+                    if (node.nodeType !== 1) return; // ELEMENT_NODE
+                    if (node.matches && node.matches('table.table')) {
+                        wrapTable(node);
+                        if (extraClass) node.classList.add(extraClass);
+                    } else if (node.querySelectorAll) {
+                        node.querySelectorAll('table.table').forEach(t => {
+                            wrapTable(t);
+                            if (extraClass) t.classList.add(extraClass);
+                        });
+                    }
+                });
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    } catch (e) {
+        console.warn('Auto-responsive tables wrapper error:', e);
+    }
+});
+
 // Auto-cerrar sidebar en mobile al hacer click en un enlace
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', function() {
@@ -247,6 +321,224 @@ document.querySelectorAll('.nav-link').forEach(link => {
         }
     });
 });
+
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/inventario-claude/sw.js')
+            .then(function(registration) {
+                console.log('[PWA] Service Worker registrado exitosamente:', registration.scope);
+                
+                // Verificar actualizaciones
+                registration.addEventListener('updatefound', function() {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', function() {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // Nueva versión disponible
+                            showUpdateAvailable(registration);
+                        }
+                    });
+                });
+            })
+            .catch(function(error) {
+                console.log('[PWA] Error al registrar Service Worker:', error);
+            });
+            
+        // Manejar updates del SW
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+            console.log('[PWA] Service Worker actualizado');
+            showSuccess('Aplicación actualizada correctamente', {
+                title: 'Sistema Actualizado',
+                duration: 3000
+            });
+        });
+    });
+    
+    // Detectar cuando la app está offline/online
+    window.addEventListener('online', function() {
+        showSuccess('Conexión restaurada', {
+            title: 'Conectado',
+            icon: true,
+            duration: 3000
+        });
+    });
+    
+    window.addEventListener('offline', function() {
+        showWarning('Sin conexión a internet. Algunas funciones pueden estar limitadas.', {
+            title: 'Sin Conexión',
+            icon: true,
+            duration: 0 // Persistente hasta que se restaure la conexión
+        });
+    });
+}
+
+// PWA Install Prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+    console.log('[PWA] Evento beforeinstallprompt disparado');
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Mostrar botón de instalación en el menú o como toast
+    showInstallPrompt();
+});
+
+function showInstallPrompt() {
+    // Solo mostrar si no está ya instalado
+    if (!window.matchMedia('(display-mode: standalone)').matches) {
+        showNotification(
+            'Instalar Aplicación',
+            'Instala el Sistema de Inventarios en tu dispositivo para acceso rápido y funciones offline.',
+            'primary',
+            {
+                duration: 10000,
+                dismissible: true
+            }
+        );
+        
+        // Agregar botón de instalación al menú de usuario si no existe
+        const userDropdown = document.querySelector('.dropdown-menu');
+        if (userDropdown && !document.querySelector('#install-pwa-btn')) {
+            const installBtn = document.createElement('li');
+            installBtn.innerHTML = `
+                <a class="dropdown-item" href="#" id="install-pwa-btn" onclick="installPWA()">
+                    <i class="fas fa-download"></i> Instalar App
+                </a>
+            `;
+            userDropdown.insertBefore(installBtn, userDropdown.querySelector('.dropdown-divider'));
+        }
+    }
+}
+
+async function installPWA() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+            console.log('[PWA] Usuario aceptó la instalación');
+            showSuccess('Aplicación instalada correctamente', {
+                title: 'Instalación Exitosa',
+                duration: 5000
+            });
+            
+            // Ocultar botón de instalación
+            const installBtn = document.querySelector('#install-pwa-btn');
+            if (installBtn) {
+                installBtn.parentElement.remove();
+            }
+        } else {
+            console.log('[PWA] Usuario rechazó la instalación');
+        }
+        
+        deferredPrompt = null;
+    }
+}
+
+// Detectar si ya está instalado como PWA
+window.addEventListener('appinstalled', function() {
+    console.log('[PWA] Aplicación instalada');
+    showSuccess('Sistema instalado como aplicación', {
+        title: 'Instalación Completada',
+        duration: 5000
+    });
+    
+    // Ocultar prompts de instalación
+    const installBtn = document.querySelector('#install-pwa-btn');
+    if (installBtn) {
+        installBtn.parentElement.remove();
+    }
+});
+
+// Mostrar notificación cuando hay una nueva versión disponible
+function showUpdateAvailable(registration) {
+    showNotification(
+        'Actualización Disponible',
+        'Nueva versión de la aplicación lista. Haz clic para actualizar.',
+        'info',
+        {
+            duration: 0, // Persistente
+            dismissible: false
+        }
+    );
+    
+    // Agregar botón de actualización
+    const updateBtn = document.createElement('button');
+    updateBtn.className = 'btn btn-sm btn-primary ms-2';
+    updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+    updateBtn.onclick = function() {
+        const newWorker = registration.waiting;
+        if (newWorker) {
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+        }
+        window.location.reload();
+    };
+    
+    // Buscar el toast de actualización y agregar el botón
+    setTimeout(() => {
+        const toastBody = document.querySelector('.toast:last-child .toast-body');
+        if (toastBody) {
+            toastBody.appendChild(updateBtn);
+        }
+    }, 100);
+}
+
+// Funciones PWA adicionales
+function getPWADisplayMode() {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    if (document.referrer.startsWith('android-app://')) {
+        return 'twa';
+    } else if (navigator.standalone || isStandalone) {
+        return 'standalone';
+    }
+    return 'browser';
+}
+
+// Cache management functions
+function updateCache() {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'CACHE_UPDATE' });
+        showInfo('Actualizando datos en cache...', {
+            title: 'Sincronización',
+            duration: 3000
+        });
+    }
+}
+
+function clearCache() {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+        showWarning('Cache limpiado. La página se recargará.', {
+            title: 'Cache Limpiado',
+            duration: 3000
+        });
+        setTimeout(() => window.location.reload(), 2000);
+    }
+}
+
+async function getCacheStatus() {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        const messageChannel = new MessageChannel();
+        navigator.serviceWorker.controller.postMessage({ type: 'GET_CACHE_STATUS' }, [messageChannel.port2]);
+        
+        return new Promise((resolve) => {
+            messageChannel.port1.onmessage = (event) => {
+                resolve(event.data);
+            };
+        });
+    }
+    return null;
+}
+
+// Mostrar estado PWA en consola (para debugging)
+console.log('[PWA] Display Mode:', getPWADisplayMode());
+console.log('[PWA] Online Status:', navigator.onLine);
+console.log('[PWA] Service Worker Support:', 'serviceWorker' in navigator);
+
+// Agregar clase CSS para PWA standalone
+if (getPWADisplayMode() === 'standalone') {
+    document.body.classList.add('pwa-standalone');
+}
 </script>
 
 </body>

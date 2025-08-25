@@ -32,7 +32,7 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'crear_tienda') {
 include 'includes/layout_header.php';
 ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
         <h2><i class="fas fa-store"></i> Nueva Tienda</h2>
         <a href="lista_tiendas.php" class="btn btn-outline-secondary"><i class="fas fa-list"></i> Lista de Tiendas</a>
     </div>
@@ -66,4 +66,3 @@ include 'includes/layout_header.php';
     </div>
 
 <?php include 'includes/layout_footer.php'; ?>
-

@@ -147,9 +147,9 @@ $proveedores = $stmt_proveedores->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/layout_header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 rs-wrap-sm">
     <h2><i class="fas fa-truck"></i> <span class="editable" data-label="proveedores_titulo">Proveedores</span></h2>
-    <div class="btn-group">
+    <div class="btn-group rs-wrap-sm">
         <a class="btn btn-outline-success" href="proveedores.php?export=csv">
             <i class="fas fa-file-csv"></i> Exportar CSV
         </a>
@@ -169,8 +169,8 @@ include 'includes/layout_header.php';
 <div class="card">
   <div class="card-header"><i class="fas fa-list"></i> Lista de Proveedores</div>
   <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-striped">
+    <div class="table-responsive-md">
+      <table class="table table-striped accessibility-fix">
         <thead>
           <tr>
             <th>Nombre</th>
@@ -200,7 +200,7 @@ include 'includes/layout_header.php';
               <?php endif; ?>
             </td>
             <td>
-              <div class="btn-group btn-group-sm">
+              <div class="btn-group btn-group-sm rs-wrap-sm">
                 <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEditarProveedor"
                         data-id="<?php echo $prov['id']; ?>"
                         data-nombre="<?php echo htmlspecialchars($prov['nombre']); ?>"
